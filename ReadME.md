@@ -1,17 +1,17 @@
-#Project & Task Management System
+##Project & Task Management System
 
-##ФИО
+###ФИО
 
 Баскин Даниил Викторович
 
-##Номер группы
+###Номер группы
 
 353501
 
-##Функциональные требования
+###Функциональные требования
 
 [**FunctionalRequirements.md**](./FunctionalRequirements.md)
 
-##Описание таблиц
+###Описание таблиц
 
 [**TableDescriptions.md**](./TableDescriptions.md)
