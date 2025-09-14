@@ -15,3 +15,7 @@
 ###Описание таблиц
 
 [**TableDescriptions.md**](./TableDescriptions.md)
+
+###Схема
+
+[**DB_scheme.drawio.svg**](./DB_scheme.drawio.svg)
