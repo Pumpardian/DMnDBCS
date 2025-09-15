@@ -10,11 +10,11 @@
 
 ##Функциональные требования
 
-![FunctionalRequirements.md](./FunctionalRequirements.md)
+[**FunctionalRequirements.md**](./FunctionalRequirements.md)
 
 ##Описание таблиц
 
-![TableDescriptions.md](./TableDescriptions.md)
+[**TableDescriptions.md**](./TableDescriptions.md)
 
 ##Схема
 
