@@ -205,11 +205,11 @@ FROM
 	SELECT
 		users.name,
 		tasks.project_id,
-		COUNT(*) AS tasks_completed,
+		COUNT(tasks.id) AS tasks_completed,
 		RANK() OVER
 		(
 			PARTITION BY tasks.project_id
-			ORDER BY COUNT(*) DESC
+			ORDER BY COUNT(tasks.id) DESC
 		) AS rank
 	FROM users
 		LEFT JOIN tasks ON users.id = tasks.executor_id
@@ -219,7 +219,7 @@ FROM
 	GROUP BY users.name, tasks.project_id
 ) stats
 WHERE
-	rank <= 3;
+	rank < 4;
 	
 --ABOVE USING WITH
 WITH ranked_tasks AS
@@ -227,11 +227,11 @@ WITH ranked_tasks AS
     SELECT
 		users.name,
 		tasks.project_id,
-        COUNT(*) AS tasks_completed,
+        COUNT(tasks.id) AS tasks_completed,
         RANK() OVER (
             PARTITION BY tasks.project_id
-            ORDER BY COUNT(*) DESC
-        ) AS place
+            ORDER BY COUNT(tasks.id) DESC
+        ) AS rank
     FROM users
         LEFT JOIN tasks ON users.id = tasks.executor_id
         INNER JOIN taskstatuses ON tasks.status = taskstatuses.id
@@ -241,4 +241,4 @@ WITH ranked_tasks AS
 SELECT *
 FROM ranked_tasks
 WHERE
-	place <= 3;
+	rank < 4;
