@@ -27,7 +27,6 @@ ORDER BY title;
 --Get tasks with their executors
 SELECT DISTINCT
 	users.name,
-	users.email,
 	tasks.title AS task_title
 FROM users
 	INNER JOIN tasks on users.id = tasks.executor_id;
@@ -35,7 +34,6 @@ FROM users
 --Get uncompleted tasks with their executors
 SELECT DISTINCT
 	users.name,
-	users.email,
 	tasks.title AS task_title
 FROM users
 	INNER JOIN tasks on users.id = tasks.executor_id
@@ -91,18 +89,16 @@ ORDER BY users.name;
 --Get user's project count
 SELECT DISTINCT
 	users.name,
-	users.email,
 	COUNT(projects.id)
 FROM users
 	LEFT JOIN userroles ON users.id = userroles.user_id
 	INNER JOIN projects ON userroles.project_id = projects.id
-GROUP BY users.email, users.name
+GROUP BY users.name
 ORDER BY users.name;
 
 --ABOVE WITH SUBQUERY
 SELECT DISTINCT
 	users.name,
-	users.email,
 	(
 		SELECT COUNT(*)
 		FROM projects
