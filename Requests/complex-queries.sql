@@ -238,3 +238,19 @@ SELECT *
 FROM ranked_tasks
 WHERE
 	rank < 4;
+	
+--TASK BY TEACH
+SELECT
+	*,
+	(
+		SELECT COUNT(*)
+		FROM tasks
+	)
+FROM tasks
+ORDER BY title;
+
+--SAME USING OVER(), AS GROUP BY WILL FAIL
+SELECT *,
+	COUNT(*) OVER()
+FROM tasks
+ORDER BY title;
