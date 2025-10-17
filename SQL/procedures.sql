@@ -1,0 +1,33 @@
+--Anonymous
+DECLARE
+
+BEGIN
+
+EXCEPTION
+
+END;
+
+
+--Procedure
+PROCEDURE name
+IS
+
+BEGIN
+
+EXCEPTION
+
+END;
+
+
+--Function
+FUNCTION name
+RETURN datatype
+IS
+
+BEGIN
+
+	RETURN datatype
+
+EXCEPTION
+
+END;
