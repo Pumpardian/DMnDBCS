@@ -74,15 +74,15 @@ CREATE TABLE IF NOT EXISTS logs (
     id SERIAL PRIMARY KEY,
     action TEXT NOT NULL,
     date TIMESTAMP NOT NULL,
-    user_id SERIAL REFERENCES users(id)
+    user_id INTEGER REFERENCES users(id)
 );
 
 CREATE TABLE IF NOT EXISTS notifications (
     id SERIAL PRIMARY KEY,
     message TEXT NOT NULL,
     time TIMESTAMP NOT NULL,
-    user_id SERIAL REFERENCES users(id),
-    project_id SERIAL REFERENCES projects(id)
+    user_id INTEGER REFERENCES users(id),
+    project_id INTEGER REFERENCES projects(id)
 );
 
 -- Ускорение поиска за счет индексации

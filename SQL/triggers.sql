@@ -30,7 +30,7 @@ BEGIN
 	ELSE
 		UPDATE projects SET
 			end_date = NULL
-		WHERE id = NEW.project_id;
+		WHERE id = NEW.project_id AND end_date IS NOT NULL;
 	END IF;
 	
 	RETURN NEW;
