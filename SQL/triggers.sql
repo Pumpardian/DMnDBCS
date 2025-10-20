@@ -36,10 +36,188 @@ BEGIN
 	RETURN NEW;
 END; $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER trigger_update_project_completion_date
+CREATE OR REPLACE TRIGGER trigger_update_project_completion_date
 BEFORE INSERT OR UPDATE ON tasks
 FOR EACH ROW
 EXECUTE FUNCTION completion_dates_automation();
+
+--NOTIFICATIONS
+
+----PROJECTRESOURCES
+
+------INSERT
+CREATE OR REPLACE FUNCTION notify_projectresources_insert()
+RETURNS TRIGGER AS $$
+BEGIN
+	INSERT INTO notifications (message, time, user_id, project_id)
+	VALUES ('There are new resource for your disposal in project'||
+	(SELECT name FROM projects WHERE id = NEW.project_id)||
+	' of type '||NEW.type,
+	CURRENT_TIMESTAMP, NULL, NEW.project_id);
+	RETURN NEW;
+END; $$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE TRIGGER trigger_notify_projectresources_insert
+AFTER INSERT ON projectresources
+FOR EACH ROW
+EXECUTE FUNCTION notify_projectresources_insert();
+
+------UPDATE
+CREATE OR REPLACE FUNCTION notify_projectresources_update()
+RETURNS TRIGGER AS $$
+BEGIN
+	CASE
+		WHEN OLD.type != NEW.type THEN
+			INSERT INTO notifications (message, time, user_id, project_id)
+			VALUES ('The resource in project '||
+			(SELECT name FROM projects WHERE id = NEW.project_id)||
+			' of type '||OLD.type||' has been replaced with',
+			CURRENT_TIMESTAMP, NULL, NEW.project_id);
+			
+		WHEN OLD.project_id != NEW.project_id THEN
+			INSERT INTO notifications (message, time, user_id, project_id)
+			VALUES ('The resource of type '||
+			OLD.type||' has been unsassigned from project '||
+			(SELECT name FROM projects WHERE id = OLD.project_id),
+			CURRENT_TIMESTAMP, NULL, NEW.project_id);
+			
+			INSERT INTO notifications (message, time, user_id, project_id)
+			VALUES ('The resource of type '||
+			OLD.type||' has been assigned to project '||
+			(SELECT name FROM projects WHERE id = NEW.project_id),
+			CURRENT_TIMESTAMP, NULL, NEW.project_id);
+	END CASE;
+	RETURN NEW;
+END; $$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE TRIGGER trigger_notify_projectresources_update
+AFTER UPDATE ON projectresources
+FOR EACH ROW
+EXECUTE FUNCTION notify_projectresources_update();
+
+------DELETE
+CREATE OR REPLACE FUNCTION notify_projectresources_delete()
+RETURNS TRIGGER AS $$
+BEGIN
+	INSERT INTO notifications (message, time, user_id, project_id)
+	VALUES ('The resource of type '||
+	OLD.type||' has been depleted in project '||
+	(SELECT name FROM projects WHERE id = OLD.project_id),
+	CURRENT_TIMESTAMP, NULL, OLD.project_id);
+	RETURN OLD;
+END; $$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE TRIGGER trigger_notify_projectresources_delete
+AFTER DELETE ON projectresources
+FOR EACH ROW
+EXECUTE FUNCTION notify_projectresources_delete();
+
+----USERROLES
+
+------INSERT & UPDATE
+CREATE OR REPLACE FUNCTION notify_userroles_insert_and_update()
+RETURNS TRIGGER AS $$
+BEGIN
+	INSERT INTO notifications (message, time, user_id, project_id)
+	VALUES ('Your role in project '||
+	(SELECT name FROM projects WHERE id = NEW.project_id)||
+	' has been set to '||(SELECT name FROM roles WHERE id = NEW.role_id),
+	CURRENT_TIMESTAMP, NEW.user_id, NULL);
+	RETURN NEW;
+END; $$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE TRIGGER trigger_notify_userroles_insert_and_update
+AFTER INSERT OR UPDATE ON userroles
+FOR EACH ROW
+EXECUTE FUNCTION notify_userroles_insert_and_update();
+
+------DELETE
+CREATE OR REPLACE FUNCTION notify_userroles_delete()
+RETURNS TRIGGER AS $$
+BEGIN
+	INSERT INTO notifications (message, time, user_id, project_id)
+	VALUES ('You have been unassigned from project '||
+	(SELECT name FROM projects WHERE id = OLD.project_id),
+	CURRENT_TIMESTAMP, OLD.user_id, NULL);
+	RETURN OLD;
+END; $$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE TRIGGER trigger_notify_userroles_delete
+AFTER DELETE ON userroles
+FOR EACH ROW
+EXECUTE FUNCTION notify_userroles_delete();
+
+----TASK ASSIGNMENT
+
+------INSERT
+CREATE OR REPLACE FUNCTION notify_task_insert()
+RETURNS TRIGGER AS $$
+BEGIN
+	INSERT INTO notifications (message, time, user_id, project_id)
+	VALUES ('You have been assigned to task '||NEW.title,
+	CURRENT_TIMESTAMP, NEW.executor_id, NULL);
+    RETURN NEW;
+END; $$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE TRIGGER trigger_notify_task_insert
+AFTER INSERT ON tasks
+FOR EACH ROW
+EXECUTE FUNCTION notify_task_insert();
+
+------UPDATE
+CREATE OR REPLACE FUNCTION notify_task_update()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF NEW.executor_id != OLD.executor_id AND NEW.executor_id IS NOT NULL THEN
+        INSERT INTO notifications (message, time, user_id, project_id)
+        VALUES ('You have been unassigned from task '||OLD.title,
+		CURRENT_TIMESTAMP, OLD.executor_id, NULL);
+		
+		INSERT INTO notifications (message, time, user_id, project_id)
+        VALUES ('You have been assigned to task '||NEW.title,
+		CURRENT_TIMESTAMP, NEW.executor_id, NULL);
+    END IF;
+    RETURN NEW;
+END; $$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE TRIGGER trigger_notify_task_update
+AFTER INSERT ON tasks
+FOR EACH ROW
+EXECUTE FUNCTION notify_task_update();
+
+------DELETE
+CREATE OR REPLACE FUNCTION notify_task_delete()
+RETURNS TRIGGER AS $$
+BEGIN
+	INSERT INTO notifications (message, time, user_id, project_id)
+	VALUES ('You have been unassigned from task '||OLD.title,
+	CURRENT_TIMESTAMP, OLD.executor_id, NULL);
+    RETURN OLD;
+END; $$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE TRIGGER trigger_notify_task_delete
+AFTER DELETE ON tasks
+FOR EACH ROW
+EXECUTE FUNCTION notify_task_delete();
+
+----TASKSTATUSES
+CREATE OR REPLACE FUNCTION notify_status_update()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF NEW.status != OLD.status AND NEW.executor_id IS NOT NULL THEN
+        INSERT INTO notifications (message, time, user_id, project_id)
+        VALUES ('Status of your task '||NEW.title||
+		' has been changed to '||(SELECT name FROM taskstatuses WHERE id = NEW.status),
+		CURRENT_TIMESTAMP, NEW.executor_id, NULL);
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE TRIGGER trigger_notify_status_update
+AFTER UPDATE ON tasks
+FOR EACH ROW
+EXECUTE FUNCTION notify_status_update();
 
 --LOGGING
 
@@ -57,7 +235,7 @@ BEGIN
 	RETURN NEW;
 END; $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER trigger_log_task_insert
+CREATE OR REPLACE TRIGGER trigger_log_task_insert
 AFTER INSERT ON tasks
 FOR EACH ROW
 EXECUTE FUNCTION log_task_insert();
@@ -91,7 +269,7 @@ BEGIN
 	RETURN NEW;
 END; $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER trigger_log_task_update
+CREATE OR REPLACE TRIGGER trigger_log_task_update
 AFTER UPDATE ON tasks
 FOR EACH ROW
 EXECUTE FUNCTION log_task_update();
@@ -107,7 +285,7 @@ BEGIN
 	RETURN OLD;
 END; $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER trigger_log_task_delete
+CREATE OR REPLACE TRIGGER trigger_log_task_delete
 AFTER DELETE ON tasks
 FOR EACH ROW
 EXECUTE FUNCTION log_task_delete();
@@ -125,7 +303,7 @@ BEGIN
 	RETURN NEW;
 END; $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER trigger_log_project_insert
+CREATE OR REPLACE TRIGGER trigger_log_project_insert
 AFTER INSERT ON projects
 FOR EACH ROW
 EXECUTE FUNCTION log_project_insert();
@@ -150,7 +328,7 @@ BEGIN
 	RETURN NEW;
 END; $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER trigger_log_project_update
+CREATE OR REPLACE TRIGGER trigger_log_project_update
 AFTER UPDATE ON projects
 FOR EACH ROW
 EXECUTE FUNCTION log_project_update();
@@ -166,7 +344,7 @@ BEGIN
 	RETURN OLD;
 END; $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER trigger_log_project_delete
+CREATE OR REPLACE TRIGGER trigger_log_project_delete
 AFTER UPDATE ON projects
 FOR EACH ROW
 EXECUTE FUNCTION log_project_update();
@@ -184,7 +362,7 @@ BEGIN
 	RETURN NEW;
 END; $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER trigger_log_taskcomment_insert
+CREATE OR REPLACE TRIGGER trigger_log_taskcomment_insert
 AFTER INSERT ON taskcomments
 FOR EACH ROW
 EXECUTE FUNCTION log_taskcomment_insert();
@@ -205,7 +383,7 @@ BEGIN
 	RETURN NEW;
 END; $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER trigger_log_taskcomment_update
+CREATE OR REPLACE TRIGGER trigger_log_taskcomment_update
 AFTER UPDATE ON taskcomments
 FOR EACH ROW
 EXECUTE FUNCTION log_taskcomment_update();
@@ -221,7 +399,7 @@ BEGIN
 	RETURN OLD;
 END; $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER trigger_log_taskcomment_delete
+CREATE OR REPLACE TRIGGER trigger_log_taskcomment_delete
 AFTER UPDATE ON taskcomments
 FOR EACH ROW
 EXECUTE FUNCTION log_taskcomment_update();
@@ -240,7 +418,7 @@ BEGIN
 	RETURN NEW;
 END; $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER trigger_log_users_insert
+CREATE OR REPLACE TRIGGER trigger_log_users_insert
 AFTER INSERT ON users
 FOR EACH ROW
 EXECUTE FUNCTION log_users_insert();
@@ -267,7 +445,7 @@ BEGIN
 	RETURN NEW;
 END; $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER trigger_log_users_update
+CREATE OR REPLACE TRIGGER trigger_log_users_update
 AFTER UPDATE ON users
 FOR EACH ROW
 EXECUTE FUNCTION log_users_update();
@@ -284,7 +462,7 @@ BEGIN
 	RETURN OLD;
 END; $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER trigger_log_users_delete
+CREATE OR REPLACE TRIGGER trigger_log_users_delete
 AFTER DELETE ON users
 FOR EACH ROW
 EXECUTE FUNCTION log_users_delete();
@@ -304,7 +482,7 @@ BEGIN
 	RETURN NEW;
 END; $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER trigger_log_userprofiles_insert
+CREATE OR REPLACE TRIGGER trigger_log_userprofiles_insert
 AFTER INSERT ON userprofiles
 FOR EACH ROW
 EXECUTE FUNCTION log_userprofiles_insert();
@@ -335,7 +513,7 @@ BEGIN
 	RETURN NEW;
 END; $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER trigger_log_userprofiles_update
+CREATE OR REPLACE TRIGGER trigger_log_userprofiles_update
 AFTER UPDATE ON userprofiles
 FOR EACH ROW
 EXECUTE FUNCTION log_userprofiles_update();
@@ -353,7 +531,7 @@ BEGIN
 	RETURN OLD;
 END; $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER trigger_log_userprofiles_delete
+CREATE OR REPLACE TRIGGER trigger_log_userprofiles_delete
 AFTER DELETE ON userprofiles
 FOR EACH ROW
 EXECUTE FUNCTION log_userprofiles_delete();
@@ -372,7 +550,7 @@ BEGIN
 	RETURN NEW;
 END; $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER trigger_log_projectresources_insert
+CREATE OR REPLACE TRIGGER trigger_log_projectresources_insert
 AFTER INSERT ON projectresources
 FOR EACH ROW
 EXECUTE FUNCTION log_projectresources_insert();
@@ -396,7 +574,7 @@ BEGIN
 	RETURN NEW;
 END; $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER trigger_log_projectresources_update
+CREATE OR REPLACE TRIGGER trigger_log_projectresources_update
 AFTER UPDATE ON projectresources
 FOR EACH ROW
 EXECUTE FUNCTION log_projectresources_update();
@@ -413,7 +591,7 @@ BEGIN
 	RETURN OLD;
 END; $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER trigger_log_projectresources_delete
+CREATE OR REPLACE TRIGGER trigger_log_projectresources_delete
 AFTER DELETE ON projectresources
 FOR EACH ROW
 EXECUTE FUNCTION log_projectresources_delete();
@@ -432,7 +610,7 @@ BEGIN
 	RETURN NEW;
 END; $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER trigger_log_userroles_insert
+CREATE OR REPLACE TRIGGER trigger_log_userroles_insert
 AFTER INSERT ON userroles
 FOR EACH ROW
 EXECUTE FUNCTION log_userroles_insert();
@@ -449,7 +627,7 @@ BEGIN
 	RETURN NEW;
 END; $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER trigger_log_userroles_update
+CREATE OR REPLACE TRIGGER trigger_log_userroles_update
 AFTER UPDATE ON userroles
 FOR EACH ROW
 EXECUTE FUNCTION log_userroles_update();
@@ -466,185 +644,7 @@ BEGIN
 	RETURN OLD;
 END; $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER trigger_userroles_delete
+CREATE OR REPLACE TRIGGER trigger_userroles_delete
 AFTER DELETE ON userroles
 FOR EACH ROW
 EXECUTE FUNCTION log_userroles_delete();
-
---NOTIFICATIONS
-
-----PROJECTRESOURCES
-
-------INSERT
-CREATE OR REPLACE FUNCTION notify_projectresources_insert()
-RETURNS TRIGGER AS $$
-BEGIN
-	INSERT INTO notifications (message, time, user_id, project_id)
-	VALUES ('There are new resource for your disposal in project'||
-	(SELECT name FROM projects WHERE id = NEW.project_id)||
-	' of type '||NEW.type,
-	CURRENT_TIMESTAMP, NULL, NEW.project_id);
-	RETURN NEW;
-END; $$ LANGUAGE plpgsql;
-
-CREATE TRIGGER trigger_notify_projectresources_insert
-AFTER INSERT ON projectresources
-FOR EACH ROW
-EXECUTE FUNCTION notify_projectresources_insert();
-
-------UPDATE
-CREATE OR REPLACE FUNCTION notify_projectresources_update()
-RETURNS TRIGGER AS $$
-BEGIN
-	CASE
-		WHEN OLD.type != NEW.type THEN
-			INSERT INTO notifications (message, time, user_id, project_id)
-			VALUES ('The resource in project '||
-			(SELECT name FROM projects WHERE id = NEW.project_id)||
-			' of type '||OLD.type||' has been replaced with',
-			CURRENT_TIMESTAMP, NULL, NEW.project_id);
-			
-		WHEN OLD.project_id != NEW.project_id THEN
-			INSERT INTO notifications (message, time, user_id, project_id)
-			VALUES ('The resource of type '||
-			OLD.type||' has been unsassigned from project '||
-			(SELECT name FROM projects WHERE id = OLD.project_id),
-			CURRENT_TIMESTAMP, NULL, NEW.project_id);
-			
-			INSERT INTO notifications (message, time, user_id, project_id)
-			VALUES ('The resource of type '||
-			OLD.type||' has been assigned to project '||
-			(SELECT name FROM projects WHERE id = NEW.project_id),
-			CURRENT_TIMESTAMP, NULL, NEW.project_id);
-	END CASE;
-	RETURN NEW;
-END; $$ LANGUAGE plpgsql;
-
-CREATE TRIGGER trigger_notify_projectresources_update
-AFTER UPDATE ON projectresources
-FOR EACH ROW
-EXECUTE FUNCTION notify_projectresources_update();
-
-------DELETE
-CREATE OR REPLACE FUNCTION notify_projectresources_delete()
-RETURNS TRIGGER AS $$
-BEGIN
-	INSERT INTO notifications (message, time, user_id, project_id)
-	VALUES ('The resource of type '||
-	OLD.type||' has been depleted in project '||
-	(SELECT name FROM projects WHERE id = OLD.project_id),
-	CURRENT_TIMESTAMP, NULL, OLD.project_id);
-	RETURN OLD;
-END; $$ LANGUAGE plpgsql;
-
-CREATE TRIGGER trigger_notify_projectresources_delete
-AFTER DELETE ON projectresources
-FOR EACH ROW
-EXECUTE FUNCTION notify_projectresources_delete();
-
-----USERROLES
-
-------INSERT & UPDATE
-CREATE OR REPLACE FUNCTION notify_userroles_insert_and_update()
-RETURNS TRIGGER AS $$
-BEGIN
-	INSERT INTO notifications (message, time, user_id, project_id)
-	VALUES ('Your role in project '||
-	(SELECT name FROM projects WHERE id = NEW.project_id)||
-	' has been set to '||(SELECT name FROM roles WHERE id = NEW.role_id),
-	CURRENT_TIMESTAMP, NEW.user_id, NULL);
-	RETURN NEW;
-END; $$ LANGUAGE plpgsql;
-
-CREATE TRIGGER trigger_notify_userroles_insert_and_update
-AFTER INSERT OR UPDATE ON userroles
-FOR EACH ROW
-EXECUTE FUNCTION notify_userroles_insert_and_update();
-
-------DELETE
-CREATE OR REPLACE FUNCTION notify_userroles_delete()
-RETURNS TRIGGER AS $$
-BEGIN
-	INSERT INTO notifications (message, time, user_id, project_id)
-	VALUES ('You have been unassigned from project '||
-	(SELECT name FROM projects WHERE id = OLD.project_id),
-	CURRENT_TIMESTAMP, OLD.user_id, NULL);
-	RETURN OLD;
-END; $$ LANGUAGE plpgsql;
-
-CREATE TRIGGER trigger_notify_userroles_delete
-AFTER DELETE ON userroles
-FOR EACH ROW
-EXECUTE FUNCTION notify_userroles_delete();
-
-----TASK ASSIGNMENT
-
-------INSERT
-CREATE OR REPLACE FUNCTION notify_task_insert()
-RETURNS TRIGGER AS $$
-BEGIN
-	INSERT INTO notifications (message, time, user_id, project_id)
-	VALUES ('You have been assigned to task '||NEW.title,
-	CURRENT_TIMESTAMP, NEW.executor_id, NULL);
-    RETURN NEW;
-END; $$ LANGUAGE plpgsql;
-
-CREATE TRIGGER trigger_notify_task_insert
-AFTER INSERT ON tasks
-FOR EACH ROW
-EXECUTE FUNCTION notify_task_insert();
-
-------UPDATE
-CREATE OR REPLACE FUNCTION notify_task_update()
-RETURNS TRIGGER AS $$
-BEGIN
-    IF NEW.executor_id != OLD.executor_id AND NEW.executor_id IS NOT NULL THEN
-        INSERT INTO notifications (message, time, user_id, project_id)
-        VALUES ('You have been unassigned from task '||OLD.title,
-		CURRENT_TIMESTAMP, OLD.executor_id, NULL);
-		
-		INSERT INTO notifications (message, time, user_id, project_id)
-        VALUES ('You have been assigned to task '||NEW.title,
-		CURRENT_TIMESTAMP, NEW.executor_id, NULL);
-    END IF;
-    RETURN NEW;
-END; $$ LANGUAGE plpgsql;
-
-CREATE TRIGGER trigger_notify_task_update
-AFTER INSERT ON tasks
-FOR EACH ROW
-EXECUTE FUNCTION notify_task_update();
-
-------DELETE
-CREATE OR REPLACE FUNCTION notify_task_delete()
-RETURNS TRIGGER AS $$
-BEGIN
-	INSERT INTO notifications (message, time, user_id, project_id)
-	VALUES ('You have been unassigned from task '||OLD.title,
-	CURRENT_TIMESTAMP, OLD.executor_id, NULL);
-    RETURN OLD;
-END; $$ LANGUAGE plpgsql;
-
-CREATE TRIGGER trigger_notify_task_delete
-AFTER DELETE ON tasks
-FOR EACH ROW
-EXECUTE FUNCTION notify_task_delete();
-
-----TASKSTATUSES
-CREATE OR REPLACE FUNCTION notify_status_update()
-RETURNS TRIGGER AS $$
-BEGIN
-    IF NEW.status != OLD.status AND NEW.executor_id IS NOT NULL THEN
-        INSERT INTO notifications (message, time, user_id, project_id)
-        VALUES ('Status of your task '||NEW.title||
-		' has been changed to '||(SELECT name FROM taskstatuses WHERE id = NEW.status),
-		CURRENT_TIMESTAMP, NEW.executor_id, NULL);
-    END IF;
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER trigger_notify_status_update
-AFTER UPDATE ON tasks
-FOR EACH ROW
-EXECUTE FUNCTION notify_status_update();
