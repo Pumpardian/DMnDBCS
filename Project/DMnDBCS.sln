@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.13.35806.99
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DMnDBCS.Domain", "DMnDBCS.Domain\DMnDBCS.Domain.csproj", "{917FE154-9355-49E9-8B26-7057BA6CCB56}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DMnDBCS.API", "DMnDBCS.API\DMnDBCS.API.csproj", "{7E99F7DE-D270-4765-82BC-816055664A67}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{917FE154-9355-49E9-8B26-7057BA6CCB56}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{917FE154-9355-49E9-8B26-7057BA6CCB56}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{917FE154-9355-49E9-8B26-7057BA6CCB56}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{917FE154-9355-49E9-8B26-7057BA6CCB56}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7E99F7DE-D270-4765-82BC-816055664A67}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7E99F7DE-D270-4765-82BC-816055664A67}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7E99F7DE-D270-4765-82BC-816055664A67}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7E99F7DE-D270-4765-82BC-816055664A67}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {CB1F3F41-5CC3-4304-B70A-50734B3394B7}
+	EndGlobalSection
+EndGlobal

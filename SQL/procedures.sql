@@ -497,14 +497,10 @@ END; $$;
 --USERS
 
 ----CREATE
-CREATE OR REPLACE PROCEDURE create_user_with_profile(
+CREATE OR REPLACE PROCEDURE create_user(
     _name VARCHAR,
     _email VARCHAR,
     _password VARCHAR,
-    _phone VARCHAR,
-    _address VARCHAR,
-    _date_of_birth DATE,
-    _profile_picture TEXT,
     INOUT _user_id INTEGER DEFAULT NULL
 )
 LANGUAGE plpgsql AS $$
@@ -514,38 +510,38 @@ BEGIN
     VALUES
     (_name, _email, crypt(_password, gen_salt('bf')))
     RETURNING id INTO _user_id;
+END; $$;
 
-    INSERT INTO userprofiles
-    (user_id, phone, address, date_of_birth, profile_picture)
-    VALUES
-    (_user_id, _phone, _address, _date_of_birth, _profile_picture);
+----GET ALL
+CREATE OR REPLACE PROCEDURE get_users(
+    INOUT _ref refcursor DEFAULT 'user_cursor'
+)
+LANGUAGE plpgsql AS $$
+BEGIN
+    OPEN _ref FOR
+    SELECT u.id, u.name, u.email
+    FROM users u;
 END; $$;
 
 ----GET
-CREATE OR REPLACE PROCEDURE get_user_with_profile(
+CREATE OR REPLACE PROCEDURE get_user(
     _user_id INTEGER,
     INOUT _ref refcursor DEFAULT 'user_cursor'
 )
 LANGUAGE plpgsql AS $$
 BEGIN
     OPEN _ref FOR
-    SELECT u.id AS user_id, u.name, u.email, p.phone, p.address, 
-           p.date_of_birth, p.profile_picture
-    FROM users u
-        LEFT JOIN userprofiles p ON u.id = p.user_id
-    WHERE u.id = _user_id;
+	SELECT id, name, email
+    FROM users
+    WHERE id = _user_id;
 END; $$;
 
 ----UPDATE
-CREATE OR REPLACE PROCEDURE update_user_and_profile(
+CREATE OR REPLACE PROCEDURE update_user(
     _user_id INTEGER,
     _name VARCHAR,
     _email VARCHAR,
-    _password VARCHAR,
-    _phone VARCHAR,
-    _address VARCHAR,
-    _date_of_birth DATE,
-    _profile_picture TEXT
+    _password VARCHAR
 )
 LANGUAGE plpgsql AS $$
 BEGIN
@@ -561,14 +557,6 @@ BEGIN
                 password
         END
     WHERE id = _user_id;
-
-    UPDATE userprofiles
-    SET
-        phone = _phone,
-        address = _address,
-        date_of_birth = _date_of_birth,
-        profile_picture = _profile_picture
-    WHERE user_id = _user_id;
 END; $$;
 
 ----DELETE
@@ -594,6 +582,58 @@ BEGIN
     SELECT u.id AS user_id, u.name AS user_name
     FROM users u
     WHERE u.email = _email AND u.password = crypt(_password, u.password);
+END; $$;
+
+--USERPROFILES
+
+----CREATE
+CREATE OR REPLACE PROCEDURE create_userprofile(
+    _phone VARCHAR,
+    _address VARCHAR,
+    _date_of_birth DATE,
+    _profile_picture TEXT,
+    _user_id INTEGER DEFAULT NULL
+)
+LANGUAGE plpgsql AS $$
+BEGIN
+    INSERT INTO userprofiles
+    (user_id, phone, address, date_of_birth, profile_picture)
+    VALUES
+    (_user_id, _phone, _address, _date_of_birth, _profile_picture);
+END; $$;
+
+----GET
+CREATE OR REPLACE PROCEDURE get_userprofile(
+	_user_id INTEGER,
+    INOUT _ref refcursor DEFAULT 'userprofile_cursor'
+)
+LANGUAGE plpgsql AS $$
+BEGIN
+    OPEN _ref FOR
+    SELECT u.id AS user_id, u.name, u.email, p.phone, p.address, 
+           p.date_of_birth, p.profile_picture
+    FROM users u
+        LEFT JOIN userprofiles p ON u.id = p.user_id
+	WHERE u.id = _user_id;
+END; $$;
+
+----UPDATE
+CREATE OR REPLACE PROCEDURE update_profile(
+    _user_id INTEGER,
+    _phone VARCHAR,
+    _address VARCHAR,
+    _date_of_birth DATE,
+    _profile_picture TEXT
+)
+LANGUAGE plpgsql AS $$
+BEGIN
+    UPDATE userprofiles
+    SET
+        phone = _phone,
+        address = _address,
+        date_of_birth = _date_of_birth,
+        profile_picture = _profile_picture
+    WHERE user_id = _user_id;
 END; $$;
 
 --GET ALL LOGS
