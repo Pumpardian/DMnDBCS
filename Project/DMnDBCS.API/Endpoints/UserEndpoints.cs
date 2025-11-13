@@ -32,13 +32,6 @@ public static class UserEndpoints
         .WithName("UpdateUser")
         .WithOpenApi();
 
-        group.MapPost("/", (User model) =>
-        {
-            return TypedResults.Created($"/api/Users/{model.Id}", model);
-        })
-        .WithName("CreateUser")
-        .WithOpenApi();
-
         group.MapDelete("/{id}", (int id) =>
         {
             return TypedResults.Ok(id);

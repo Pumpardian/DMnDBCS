@@ -63,6 +63,20 @@ BEGIN
     FROM projects;
 END; $$;
 
+----GET
+CREATE OR REPLACE PROCEDURE get_project(
+	_project_id INTEGER,
+    INOUT _ref refcursor DEFAULT 'projects_cursor'
+)
+LANGUAGE plpgsql AS $$
+BEGIN
+    OPEN _ref FOR
+    SELECT id AS project_id, title AS project_title, description AS project_description, 
+           start_date AS project_start_date, end_date AS project_end_date
+    FROM projects
+	WHERE id = _project_id;
+END; $$;
+
 --TASKS
 
 ----CREATE
@@ -128,7 +142,7 @@ LANGUAGE plpgsql AS $$
 BEGIN
     OPEN _ref FOR
     SELECT tasks.id AS task_id, tasks.title AS task_title, tasks.description AS task_description, 
-           tasks.executor_id AS task_executor_id, taskstatuses.name AS task_status, 
+           tasks.executor_id AS task_executor_id, taskstatuses.id AS task_status, taskstatuses.name AS task_status_name,
            tasks.creation_date AS task_creation_date, tasks.completion_date AS task_completion_date
     FROM tasks
         LEFT JOIN taskstatuses ON tasks.status = taskstatuses.id
@@ -144,11 +158,27 @@ LANGUAGE plpgsql AS $$
 BEGIN
     OPEN _ref FOR
     SELECT tasks.id AS task_id, tasks.title AS task_title, tasks.description AS task_description, 
-           tasks.project_id AS task_project_id, taskstatuses.name AS task_status, 
+           tasks.project_id AS task_project_id, taskstatuses.id AS task_status, taskstatuses.name AS task_status_name, 
            tasks.creation_date AS task_creation_date, tasks.completion_date AS task_completion_date
     FROM tasks
         LEFT JOIN taskstatuses ON tasks.status = taskstatuses.id
     WHERE tasks.executor_id = _executor_id;
+END; $$;
+
+----GET
+CREATE OR REPLACE PROCEDURE get_task(
+    _task_id INTEGER,
+    INOUT _ref refcursor DEFAULT 'tasks_cursor'
+)
+LANGUAGE plpgsql AS $$
+BEGIN
+    OPEN _ref FOR
+    SELECT tasks.id AS task_id, tasks.title AS task_title, tasks.description AS task_description, 
+           tasks.project_id AS task_project_id, tasks.executor_id AS task_executor_id, taskstatuses.id AS task_status, taskstatuses.name AS task_status_name,
+           tasks.creation_date AS task_creation_date, tasks.completion_date AS task_completion_date
+    FROM tasks
+        LEFT JOIN taskstatuses ON tasks.status = taskstatuses.id
+    WHERE tasks.id = _task_id;
 END; $$;
 
 --ROLES
@@ -217,14 +247,12 @@ END; $$;
 CREATE OR REPLACE PROCEDURE create_userrole(
     _user_id INTEGER,
     _project_id INTEGER,
-    _role_id INTEGER,
-    INOUT _userrole_id INTEGER DEFAULT NULL
+    _role_id INTEGER
 )
 LANGUAGE plpgsql AS $$
 BEGIN
     INSERT INTO userroles (user_id, role_id, project_id)
-    VALUES (_user_id, _role_id, _project_id)
-    RETURNING id INTO _userrole_id;
+    VALUES (_user_id, _role_id, _project_id);
 END; $$;
 
 ----UPDATE
@@ -266,9 +294,9 @@ BEGIN
     WHERE userroles.user_id = _user_id AND userroles.project_id = _project_id;
 END; $$;
 
-----GET USER ROLES
-CREATE OR REPLACE PROCEDURE get_user_roles(
-    _user_id INTEGER,
+----GET USER ROLES IN PROJECT
+CREATE OR REPLACE PROCEDURE get_userroles_in_project(
+	_project_id INTEGER,
     INOUT _ref refcursor DEFAULT 'roles_cursor'
 )
 LANGUAGE plpgsql AS $$
@@ -277,7 +305,7 @@ BEGIN
     SELECT userroles.role_id, roles.name AS role_name
     FROM userroles
         LEFT JOIN roles ON userroles.role_id = roles.id
-    WHERE userroles.user_id = _user_id;
+    WHERE userroles.project_id = _project_id;
 END; $$;
 
 ----GET PROJECT MEMBERS WITH ROLES
@@ -315,22 +343,6 @@ END; $$;
 
 ----UPDATE
 CREATE OR REPLACE PROCEDURE update_taskcomment(
-    _task_id INTEGER,
-    _author_id INTEGER,
-    _content TEXT,
-    _creation_date TIMESTAMP
-)
-LANGUAGE plpgsql AS $$
-BEGIN
-    UPDATE taskcomments
-    SET
-        content = _content,
-        creation_date = _creation_date
-    WHERE task_id = _task_id AND author_id = _author_id;
-END; $$;
-
-----UPDATE BY ID
-CREATE OR REPLACE PROCEDURE update_taskcomment_by_id(
     _taskcomment_id INTEGER,
     _content TEXT,
     _creation_date TIMESTAMP
@@ -353,7 +365,7 @@ BEGIN
     DELETE FROM taskcomments WHERE id = _taskcomment_id;
 END; $$;
 
-----GET TASKCOMMENTS
+----GET
 CREATE OR REPLACE PROCEDURE get_taskcomments(
     _task_id INTEGER,
     INOUT _ref refcursor DEFAULT 'comments_cursor'
@@ -592,7 +604,7 @@ CREATE OR REPLACE PROCEDURE create_userprofile(
     _address VARCHAR,
     _date_of_birth DATE,
     _profile_picture TEXT,
-    _user_id INTEGER DEFAULT NULL
+    _user_id INTEGER
 )
 LANGUAGE plpgsql AS $$
 BEGIN

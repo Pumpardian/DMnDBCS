@@ -1,0 +1,72 @@
+﻿@model DMnDBCS.Domain.Entities.Project
+
+@{
+    ViewData["Title"] = "Details";
+}
+
+<h1>Details</h1>
+
+@* MOVE SOME OF THIS TO PARTIAL VIEWS & MAKE USE OF ITS OWN MODEL DATA OR USE VIEWDATA/VIEWBAG *@
+
+<div class="container mt-4">
+    <!-- Project Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1>@Model.Title</h1>
+            <p class="lead text-muted">@Model.Description</p>
+            <div class="text-muted">
+                <span class="me-3">Start: @Model.StartDate</span>
+                <span>End: @Model.EndDate</span>
+            </div>
+        </div>
+        @Html.ActionLink("Back", "Index", null, new { @class = "btn btn-outline-secondary" })
+    </div>
+
+    <div class="row">
+@*         <!-- Tasks -->
+        <div class="col-lg-8">
+            <h4 class="mb-3">Tasks</h4>
+            <div class="row">
+                @foreach (var task in Model.Tasks)
+                {
+                    <div class="col-md-6 mb-3">
+                        <div class="card">
+                            <div class="card-body">
+                                <h6 class="card-title">@task.Title</h6>
+                                <p class="card-text small text-muted">@task.Description</p>
+                                <small class="text-muted">Assigned to: @task.AssignedTo</small>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Members -->
+        <div class="col-lg-4">
+            <h4 class="mb-3">Team</h4>
+            <div class="card">
+                <div class="card-body">
+                    @foreach (var member in Model.Members)
+                    {
+                        <div class="d-flex align-items-center mb-2">
+                            <div class="bg-secondary text-white rounded-circle me-2 d-flex align-items-center justify-content-center" 
+                                 style="width: 32px; height: 32px; font-size: 0.8rem;">
+                                @member.Name.Substring(0, 1)
+                            </div>
+                            <div>
+                                <div class="small fw-bold">@member.Name</div>
+                                <small class="text-muted">@member.Role</small>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div> *@
+    </div>
+</div>
+@* <div>
+    @Html.ActionLink("Edit", "Edit", new { /* id = Model.PrimaryKey */ }) |
+    <a asp-action="Index">Back to List</a>
+</div>
+ *@

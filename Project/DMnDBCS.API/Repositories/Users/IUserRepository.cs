@@ -6,8 +6,9 @@ namespace DMnDBCS.API.Repositories.Users
     {
         Task<User> GetByIdAsync(int id);
         Task<IEnumerable<User>> GetAllAsync();
-        Task<int> CreateAsync(User user, string password);
+        Task<bool> CreateAsync(User user, string password);
         Task<bool> UpdateAsync(User user, string? newPassword = null);
         Task<bool> DeleteAsync(int id);
+        Task<User> AuthenticateAsync(string email, string password);
     }
 }

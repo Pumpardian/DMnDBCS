@@ -1,0 +1,23 @@
+﻿﻿@{
+var isAuthenticated = User.Identity.IsAuthenticated;
+var name = User.Claims.FirstOrDefault(c => c.Type == "preferred_username")?.Value ?? "User";
+var avatar = User.Claims.FirstOrDefault(c => c.Type == "avatar")?.Value ?? Url.Content("~/images/default-profile-picture.jpg");
+}
+
+<div class="navbar-nav ml-auto">
+    @if (!string.IsNullOrEmpty(Context.Session.GetString("JWTToken")))
+    {
+        <span class="navbar-text text-success">
+            ✓ Logged In
+        </span>
+        <a class="nav-link" asp-controller="Auth" asp-action="Logout">Logout</a>
+    }
+    else
+    {
+        <span class="navbar-text text-warning">
+            ✗ Not Logged In
+        </span>
+        <a class="nav-link" asp-controller="Auth" asp-action="Login">Login</a>
+        <a class="nav-link" asp-controller="Auth" asp-action="Register">Register</a>
+    }
+</div>
