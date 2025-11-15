@@ -1,16 +1,20 @@
-﻿using System.Text.Json;
+﻿using DMnDBCS.UI.Services.Auth;
+using System.Text.Json;
 
 namespace DMnDBCS.UI.Services.Logs
 {
-    public class ApiLogsService(HttpClient httpClient, ILogger<ApiLogsService> logger) : ILogsService
+    public class ApiLogsService(HttpClient httpClient, ILogger<ApiLogsService> logger, ITokenAccessor tokenAccessor) : ILogsService
     {
         private readonly HttpClient _client = httpClient;
         private readonly ILogger<ApiLogsService> _logger = logger;
+        private readonly ITokenAccessor _tokenAccessor = tokenAccessor;
         private readonly JsonSerializerOptions _jsonSerializerOptions = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
 
         public async Task<ResponseData<List<Log>>> GetLogListAsync()
         {
             var urlString = _client.BaseAddress!.AbsoluteUri;
+
+            _tokenAccessor.SetAuthHeaderAsync(_client);
 
             var response = await _client.GetAsync(urlString);
             if (response.IsSuccessStatusCode)

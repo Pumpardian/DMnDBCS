@@ -27,9 +27,22 @@ namespace DMnDBCS.API.Repositories.ProjectResources
             return await _connection.QueryDBEntities(procedureName, reader => new ProjectResource
             {
                 Id = reader.GetInt32(0),
-                Description = reader.GetString(1),
+                Description = reader.IsDBNull(1) ? null : reader.GetString(1),
                 Type = reader.GetString(2),
                 ProjectId = id
+            }, id);
+        }
+
+        public async Task<ProjectResource> GetByIdAsync(int id)
+        {
+            const string procedureName = "get_projectresource";
+
+            return await _connection.QueryDBEntity(procedureName, reader => new ProjectResource
+            {
+                Id = reader.GetInt32(0),
+                Description = reader.IsDBNull(1) ? null : reader.GetString(1),
+                Type = reader.GetString(2),
+                ProjectId = reader.GetInt32(3)
             }, id);
         }
 

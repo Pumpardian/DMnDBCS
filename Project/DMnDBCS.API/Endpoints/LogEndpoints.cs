@@ -11,38 +11,20 @@ public static class LogEndpoints
 
         group.MapGet("/", async ([FromServices] ILogRepository repository) =>
         {
-            var data = await repository.GetAllAsync();
-            return TypedResults.Ok(data);
+            try
+            {
+                var data = await repository.GetAllAsync();
+                return TypedResults.Ok(data);
+            }
+            catch (Exception ex)
+            {
+                return Results.Problem(
+                    detail: ex.ToString(),
+                    title: "Error occurred",
+                    statusCode: 500);
+            }
         })
         .WithName("GetAllLogs")
-        .WithOpenApi();
-
-        /*group.MapGet("/{id}", (int id) =>
-        {
-            //return new Log { ID = id };
-        })
-        .WithName("GetLogById")
-        .WithOpenApi();
-
-        group.MapPut("/{id}", (int id, Log input) =>
-        {
-            return TypedResults.NoContent();
-        })
-        .WithName("UpdateLog")
-        .WithOpenApi();
-
-        group.MapPost("/", (Log model) =>
-        {
-            //return TypedResults.Created($"/api/Logs/{model.ID}", model);
-        })
-        .WithName("CreateLog")
-        .WithOpenApi();
-
-        group.MapDelete("/{id}", (int id) =>
-        {
-            //return TypedResults.Ok(new Log { ID = id });
-        })
-        .WithName("DeleteLog")
-        .WithOpenApi();*/
+        .WithOpenApi().RequireAuthorization();
     }
 }

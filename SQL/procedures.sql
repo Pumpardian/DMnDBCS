@@ -316,9 +316,10 @@ CREATE OR REPLACE PROCEDURE get_project_members(
 LANGUAGE plpgsql AS $$
 BEGIN
     OPEN _ref FOR
-    SELECT userroles.user_id, userroles.role_id, roles.name AS role_name
+    SELECT userroles.user_id, userroles.role_id, users.name AS user_name, roles.name AS role_name
     FROM userroles
         LEFT JOIN roles ON userroles.role_id = roles.id
+		LEFT JOIN users ON userroles.user_id = users.id
     WHERE userroles.project_id = _project_id;
 END; $$;
 
@@ -379,6 +380,20 @@ BEGIN
     WHERE taskcomments.task_id = _task_id;
 END; $$;
 
+----GET BY ID
+CREATE OR REPLACE PROCEDURE get_taskcomment(
+    _id INTEGER,
+    INOUT _ref refcursor DEFAULT 'comments_cursor'
+)
+LANGUAGE plpgsql AS $$
+BEGIN
+    OPEN _ref FOR
+    SELECT taskcomments.id AS taskcomment_id, taskcomments.content AS taskcomment_content, 
+           taskcomments.creation_date AS comment_creation_date, taskcomments.task_id, taskcomments.author_id
+    FROM taskcomments
+    WHERE taskcomments.id = _id;
+END; $$;
+
 --PROJECTRESOURCES
 
 ----CREATE
@@ -433,6 +448,20 @@ BEGIN
            type AS projectresources_type
     FROM projectresources
     WHERE project_id = _project_id;
+END; $$;
+
+----GET BY ID
+CREATE OR REPLACE PROCEDURE get_projectresource(
+    _id INTEGER,
+    INOUT _ref refcursor DEFAULT 'resources_cursor'
+)
+LANGUAGE plpgsql AS $$
+BEGIN
+    OPEN _ref FOR
+    SELECT id AS projectresources_id, description AS projectresources_description, 
+           type AS projectresources_type, project_id AS projectresources_projectid
+    FROM projectresources
+    WHERE id = _id;
 END; $$;
 
 --NOTIFICATIONS

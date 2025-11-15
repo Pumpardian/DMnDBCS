@@ -1,4 +1,14 @@
 ﻿@{
     Layout = "_Layout";
     ViewData["ProjectName"] = "Project & Task Management System";
+
+    var token = Context.Session.GetString("JWTToken");
+    if (!string.IsNullOrEmpty(token))
+    {
+        var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
+        var jwtToken = handler.ReadJwtToken(token);
+        ViewBag.Username = jwtToken.Claims.FirstOrDefault(c => c.Type == "unique_name")?.Value;
+        ViewBag.UserId = jwtToken.Claims.FirstOrDefault(c => c.Type == "nameid")?.Value;
+        ViewBag.UserEmail = jwtToken.Claims.FirstOrDefault(c => c.Type == "email")?.Value;
+    }
 }

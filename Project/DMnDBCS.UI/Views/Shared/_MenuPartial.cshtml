@@ -16,5 +16,11 @@
         <li class="nav-item">
             <a class="nav-link text-dark" asp-area="" asp-controller="Projects" asp-action="Index">Projects</a>
         </li>
+        @if (!string.IsNullOrEmpty(ViewBag.UserId))
+        {
+        <li class="nav-item">
+            <a class="nav-link text-dark" asp-area="" asp-controller="Tasks" asp-action="Index">My tasks</a>
+        </li>
+        }
     </ul>
 </div>

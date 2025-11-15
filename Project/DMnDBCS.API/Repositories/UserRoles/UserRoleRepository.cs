@@ -1,5 +1,6 @@
 ﻿using DMnDBCS.API.Extensions;
 using DMnDBCS.Domain.Entities;
+using Microsoft.CodeAnalysis;
 using Npgsql;
 
 namespace DMnDBCS.API.Repositories.UserRoles
@@ -20,15 +21,32 @@ namespace DMnDBCS.API.Repositories.UserRoles
             return await _connection.DeleteDBEntity(procedureName, userId, projectId);
         }
 
-        //Leave that for later stages, as its precisely unknown how that will be used
-        public Task<IEnumerable<UserRole>> GetAllAsync()
+        
+        public async Task<IEnumerable<UserRole>> GetAllForProjectAsync(int projectId)
         {
-            throw new NotImplementedException();
+            const string procedureName = "get_project_members";
+
+            return await _connection.QueryDBEntities(procedureName, reader => new UserRole
+            {
+                UserId = reader.GetInt32(0),
+                RoleId = reader.GetInt32(1),
+                UserName = reader.GetString(2),
+                RoleName = reader.GetString(3),
+                ProjectId = projectId
+            }, projectId);
         }
 
-        public Task<UserRole> GetByIdAsync(int id)
+        public async Task<UserRole> GetByIdUserAndProjectIdsAsync(int userId, int projectId)
         {
-            throw new NotImplementedException();
+            const string procedureName = "get_userrole";
+
+            return await _connection.QueryDBEntity(procedureName, reader => new UserRole
+            {
+                UserId = userId,
+                RoleId = reader.GetInt32(1),
+                RoleName = reader.GetString(2),
+                ProjectId = projectId
+            }, userId, projectId);
         }
 
         public async Task<bool> UpdateAsync(UserRole userRole)

@@ -1,6 +1,10 @@
 ﻿using DMnDBCS.API.Repositories.Logs;
+using DMnDBCS.API.Repositories.ProjectResources;
 using DMnDBCS.API.Repositories.Projects;
+using DMnDBCS.API.Repositories.TaskComments;
 using DMnDBCS.API.Repositories.Tasks;
+using DMnDBCS.API.Repositories.TaskStatuses;
+using DMnDBCS.API.Repositories.UserRoles;
 using DMnDBCS.API.Repositories.Users;
 using DMnDBCS.API.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -27,24 +31,24 @@ namespace DMnDBCS.API.Extensions
                 .AddScoped<IUserRepository, UserRepository>()
                 .AddScoped<ILogRepository, LogRepository>()
                 .AddScoped<IProjectRepository, ProjectRepository>()
-                .AddScoped<ITaskRepository, TaskRepository>();
-
-            builder.Services.AddSingleton<ITokenService, TokenService>();
+                .AddScoped<IProjectResourceRepository, ProjectResourceRepository>()
+                .AddScoped<ITaskRepository, TaskRepository>()
+                .AddScoped<ITaskCommentRepository, TaskCommentRepository>()
+                .AddScoped<ITaskStatusRepository, TaskStatusRepository>()
+                .AddScoped<IUserRoleRepository, UserRoleRepository>();
         }
 
         internal static void SetupAuth(this WebApplicationBuilder builder)
         {
-            var jwtSettings = builder.Configuration.GetSection("Jwt");
-            var key = Encoding.ASCII.GetBytes(jwtSettings["Key"]!);
+            builder.Services.AddSingleton<ITokenService, TokenService>();
 
-            builder.Services.AddAuthentication(options =>
-            {
-                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-            })
+            var jwtSettings = builder.Configuration.GetSection("Jwt");
+            var key = Encoding.UTF8.GetBytes(jwtSettings["Key"]!);
+
+            builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options =>
             {
-                options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+                options.TokenValidationParameters = new TokenValidationParameters
                 {
                     ValidateIssuer = true,
                     ValidateAudience = true,

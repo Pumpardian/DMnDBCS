@@ -1,12 +1,21 @@
-﻿using DMnDBCS.UI.Services.Projects;
+﻿using DMnDBCS.UI.Services.Auth;
+using DMnDBCS.UI.Services.ProjectResources;
+using DMnDBCS.UI.Services.Projects;
+using DMnDBCS.UI.Services.Tasks;
+using DMnDBCS.UI.Services.UserRoles;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace DMnDBCS.UI.Controllers
 {
-    public class ProjectsController(IProjectsService projectsService) : Controller
+    public class ProjectsController(IProjectsService projectsService, ITasksService tasksService,
+        IProjectResourcesService projectResourcesService, IUserRolesService userRolesService, ITokenAccessor tokenAccessor) : Controller
     {
         private readonly IProjectsService _projectsService = projectsService;
+        private readonly ITasksService _tasksService = tasksService;
+        private readonly IProjectResourcesService _projectResourcesService = projectResourcesService;
+        private readonly IUserRolesService _userRolesService = userRolesService;
+        private readonly ITokenAccessor _tokenAccessor = tokenAccessor;
 
         // GET: ProjectsController
         public async Task<ActionResult> Index()
@@ -20,17 +29,38 @@ namespace DMnDBCS.UI.Controllers
             return View(response.Data);
         }
 
-        /*// GET: ProjectsController/Details/5
+        // GET: ProjectsController/Details/5
         public async Task<ActionResult> Details(int id)
         {
             var projectResponse = await _projectsService.GetByIdAsync(id);
-            if (!projectResponse.isSuccessful)
+            if (!projectResponse.IsSuccessful)
             {
                 return NotFound(projectResponse.ErrorMessage);
             }
 
+            var taskResponse = await _tasksService.GetTasksForProjectAsync(id);
+            if (!taskResponse.IsSuccessful)
+            {
+                return NotFound(taskResponse.ErrorMessage);
+            }
+            ViewBag.Tasks = taskResponse.Data;
+
+            var resourceResponse = await _projectResourcesService.GetProjectResourcesByProjectIdAsync(id);
+            if (!resourceResponse.IsSuccessful)
+            {
+                return NotFound(resourceResponse.ErrorMessage);
+            }
+            ViewBag.Resources = resourceResponse.Data;
+
+            var memberResponse = await _userRolesService.GetRolesForProjectByIdAsync(id);
+            if (!memberResponse.IsSuccessful)
+            {
+                return NotFound(memberResponse.ErrorMessage);
+            }
+            ViewBag.Members = memberResponse.Data;
+
             return View(projectResponse.Data);
-        }*/
+        }
 
         // GET: ProjectsController/Create
         public ActionResult Create()

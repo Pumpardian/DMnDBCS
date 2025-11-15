@@ -1,9 +1,8 @@
 ﻿using DMnDBCS.API.Repositories.Tasks;
-using DMnDBCS.Domain.Entities;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.OpenApi;
 using NuGet.Protocol.Core.Types;
+using System.Reflection;
+
 namespace DMnDBCS.API.Endpoints;
 
 public static class TaskEndpoints
@@ -14,45 +13,108 @@ public static class TaskEndpoints
 
         group.MapGet("/executor/{id}", async (int id, [FromServices] ITaskRepository repository) =>
         {
-            var data = await repository.GetAllForExecutorAsync(id);
-            return TypedResults.Ok(data);
+            try
+            {
+                var data = await repository.GetAllForExecutorAsync(id);
+                return TypedResults.Ok(data);
+            }
+            catch (Exception ex)
+            {
+                return Results.Problem(
+                    detail: ex.ToString(),
+                    title: "Error occured",
+                    statusCode: 500);
+            }
         })
         .WithName("GetAllTasksByExecutor")
         .WithOpenApi();
 
         group.MapGet("/project/{id}", async (int id, [FromServices] ITaskRepository repository) =>
         {
-            var data = await repository.GetAllForProjectAsync(id);
-            return TypedResults.Ok(data);
+            try
+            {
+                var data = await repository.GetAllForProjectAsync(id);
+                return TypedResults.Ok(data);
+            }
+            catch (Exception ex)
+            {
+                return Results.Problem(
+                    detail: ex.ToString(),
+                    title: "Error occured",
+                    statusCode: 500);
+            }
         })
         .WithName("GetAllTasksByProject")
         .WithOpenApi();
 
         group.MapGet("/{id}", async (int id, [FromServices] ITaskRepository repository) =>
         {
-            var data = await repository.GetByIdAsync(id);
-            return TypedResults.Ok(data);
+            try
+            { 
+                var data = await repository.GetByIdAsync(id);
+                return TypedResults.Ok(data);
+            }
+            catch (Exception ex)
+            {
+                return Results.Problem(
+                    detail: ex.ToString(),
+                    title: "Error occured",
+                    statusCode: 500);
+            }
         })
         .WithName("GetTaskById")
         .WithOpenApi();
 
-        group.MapPut("/{id}", (int id, Domain.Entities.Task input) =>
+        group.MapPut("/{id}", async (int id, Domain.Entities.Task input, [FromServices] ITaskRepository repository) =>
         {
-            return TypedResults.NoContent();
+            try
+            {
+                var data = await repository.UpdateAsync(input);
+                return TypedResults.Ok(data);
+            }
+            catch (Exception ex)
+            {
+                return Results.Problem(
+                    detail: ex.ToString(),
+                    title: "Error occured",
+                    statusCode: 500);
+            }
         })
         .WithName("UpdateTask")
         .WithOpenApi();
 
-        group.MapPost("/", (Domain.Entities.Task model) =>
+        group.MapPost("/", async (Domain.Entities.Task model, [FromServices] ITaskRepository repository) =>
         {
-            //return TypedResults.Created($"/api/Tasks/{model.ID}", model);
+            try
+            {
+                var data = await repository.CreateAsync(model);
+                return TypedResults.Ok(data);
+            }
+            catch (Exception ex)
+            {
+                return Results.Problem(
+                    detail: ex.ToString(),
+                    title: "Error occured",
+                    statusCode: 500);
+            }
         })
         .WithName("CreateTask")
         .WithOpenApi();
 
-        group.MapDelete("/{id}", (int id) =>
+        group.MapDelete("/{id}", async (int id, [FromServices] ITaskRepository repository) =>
         {
-            //return TypedResults.Ok(new Task { ID = id });
+            try
+            {
+                var data = await repository.DeleteAsync(id);
+                return TypedResults.Ok(data);
+            }
+            catch (Exception ex)
+            {
+                return Results.Problem(
+                    detail: ex.ToString(),
+                    title: "Error occured",
+                    statusCode: 500);
+            }
         })
         .WithName("DeleteTask")
         .WithOpenApi();

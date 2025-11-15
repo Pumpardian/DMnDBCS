@@ -17,7 +17,7 @@ namespace DMnDBCS.API.Repositories.Logs
                 Id = reader.GetInt32(0),
                 Action = reader.GetString(1),
                 Date = reader.GetDateTime(2),
-                UserName = reader.GetString(3)
+                UserName = reader.IsDBNull(3) ? null : reader.GetString(3)
             });
         }
     }

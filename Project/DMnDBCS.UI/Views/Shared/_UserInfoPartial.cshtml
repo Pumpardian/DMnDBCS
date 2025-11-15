@@ -1,14 +1,11 @@
-﻿﻿@{
-var isAuthenticated = User.Identity.IsAuthenticated;
-var name = User.Claims.FirstOrDefault(c => c.Type == "preferred_username")?.Value ?? "User";
-var avatar = User.Claims.FirstOrDefault(c => c.Type == "avatar")?.Value ?? Url.Content("~/images/default-profile-picture.jpg");
+﻿@{
 }
 
 <div class="navbar-nav ml-auto">
-    @if (!string.IsNullOrEmpty(Context.Session.GetString("JWTToken")))
+    @if (!string.IsNullOrEmpty(ViewBag.Username))
     {
         <span class="navbar-text text-success">
-            ✓ Logged In
+            ✓ Logged In as @ViewBag.Username
         </span>
         <a class="nav-link" asp-controller="Auth" asp-action="Logout">Logout</a>
     }

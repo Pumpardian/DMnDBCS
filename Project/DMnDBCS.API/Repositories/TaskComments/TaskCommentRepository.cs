@@ -34,6 +34,20 @@ namespace DMnDBCS.API.Repositories.TaskComments
             }, id);
         }
 
+        public async Task<TaskComment> GetByIdAsync(int id)
+        {
+            const string procedureName = "get_taskcomment";
+
+            return await _connection.QueryDBEntity(procedureName, reader => new TaskComment
+            {
+                Id = reader.GetInt32(0),
+                Content = reader.GetString(1),
+                CreationDate = DateOnly.FromDateTime(reader.GetDateTime(2)),
+                TaskId = reader.GetInt32(3),
+                AuthorId = reader.GetInt32(4)
+            }, id);
+        }
+
         public async Task<bool> UpdateAsync(TaskComment taskComment)
         {
             const string procedureName = "update_taskcomment";

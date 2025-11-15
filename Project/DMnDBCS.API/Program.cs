@@ -13,8 +13,6 @@ builder.SetupAuth();
 
 builder.Services.AddEndpointsApiExplorer();
 
-builder.Services.AddSwaggerGen();
-
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -25,14 +23,13 @@ if (app.Environment.IsDevelopment())
 app.MapUserEndpoints();
 app.MapLogEndpoints();
 app.MapProjectEndpoints();
+app.MapProjectResourceEndpoints();
 app.MapTaskEndpoints();
-app.MapAuthEndpoints();
+app.MapTaskCommentEndpoints();
+app.MapUserRoleEndpoints();
+app.MapTaskStatusEndpoints();
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-};
+app.MapAuthEndpoints();
 
 app.UseCors("AllowWebUI");
 app.UseAuthentication();
@@ -40,4 +37,5 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.UseHttpsRedirection();
+
 app.Run();

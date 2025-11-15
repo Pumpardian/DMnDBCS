@@ -1,15 +1,13 @@
 ﻿@model DMnDBCS.Domain.Entities.Project
 
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = "Project Details";
 }
 
 <h1>Details</h1>
 
-@* MOVE SOME OF THIS TO PARTIAL VIEWS & MAKE USE OF ITS OWN MODEL DATA OR USE VIEWDATA/VIEWBAG *@
-
 <div class="container mt-4">
-    <!-- Project Header -->
+    <!-- Project Info -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h1>@Model.Title</h1>
@@ -19,54 +17,150 @@
                 <span>End: @Model.EndDate</span>
             </div>
         </div>
-        @Html.ActionLink("Back", "Index", null, new { @class = "btn btn-outline-secondary" })
     </div>
 
-    <div class="row">
-@*         <!-- Tasks -->
-        <div class="col-lg-8">
-            <h4 class="mb-3">Tasks</h4>
+    <div class="row mb-5">
+        <!-- Project Resources -->
+        <div col-lg-8>
+            <h4 class="mb-3">Resources</h4>
+            @Html.ActionLink("Create", "Create", "ProjectResources", new { projectId = Model.Id }, new { @class = "btn btn-outline-primary btn-sm mb-2" })
             <div class="row">
-                @foreach (var task in Model.Tasks)
+                @if (ViewBag.Resources != null)
                 {
-                    <div class="col-md-6 mb-3">
-                        <div class="card">
-                            <div class="card-body">
-                                <h6 class="card-title">@task.Title</h6>
-                                <p class="card-text small text-muted">@task.Description</p>
-                                <small class="text-muted">Assigned to: @task.AssignedTo</small>
+                    @foreach (var item in ViewBag.Resources)
+                    {
+                        <div class="col-md-6 mb-3">
+                            <div class="card">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <small class="text-muted">ID: @item.Id</small>
+                                    </div>
+                                    <h5 class="card-title">@item.Type</h5>
+                                    <p class="card-text">@item.Description</p>
+                                </div>
+                                <div class="card-footer bg-transparent">
+                                    <div class="btn-group w-100" role="group">
+                                        @Html.ActionLink("Edit", "Edit", "ProjectResources", new { id = item.Id }, new { @class = "btn btn-outline-secondary btn-sm" })
+                                        @Html.ActionLink("Delete", "Delete", "ProjectResources", new { id = item.Id }, new { @class = "btn btn-outline-danger btn-sm" })
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    }
+                }
+                else
+                {
+                    <p>No resources</p>
                 }
             </div>
         </div>
+    </div>
 
-        <!-- Members -->
-        <div class="col-lg-4">
-            <h4 class="mb-3">Team</h4>
-            <div class="card">
-                <div class="card-body">
-                    @foreach (var member in Model.Members)
+    <hr />
+
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Project Tasks -->
+            <div class="col-lg-8">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4 class="mb-0">Tasks</h4>
+                    @Html.ActionLink("Create", "Create", "Tasks", new { projectId = Model.Id }, new { @class = "btn btn-primary btn-sm" })
+                </div>
+
+                <div class="row">
+                    @if (ViewBag.Tasks != null)
                     {
-                        <div class="d-flex align-items-center mb-2">
-                            <div class="bg-secondary text-white rounded-circle me-2 d-flex align-items-center justify-content-center" 
-                                 style="width: 32px; height: 32px; font-size: 0.8rem;">
-                                @member.Name.Substring(0, 1)
+                        @foreach (var item in ViewBag.Tasks)
+                        {
+                            <div class="col-md-6 mb-3">
+                                <div class="card h-100 shadow-sm">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <small class="text-muted">ID: @item.Id</small>
+                                            <small class="text-muted">Executor ID: @item.ExecutorId</small>
+                                        </div>
+                                        <h5 class="card-title">@item.Title</h5>
+                                        <p class="card-text">@item.Description</p>
+                                        <div class="mb-2">
+                                            <span class="badge bg-info">@item.StatusName</span>
+                                        </div>
+
+                                        <div class="mt-3 pt-3 border-top">
+                                            <div class="row small text-muted">
+                                                <div class="col-6">
+                                                    <strong>Creation Date:</strong><br>
+                                                    @item.CreationDate
+                                                </div>
+                                                <div class="col-6">
+                                                    <strong>Completion Date:</strong><br>
+                                                    @item.CompletionDate
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="card-footer bg-transparent">
+                                        <div class="btn-group w-100" role="group">
+                                            @Html.ActionLink("Details", "Details", "Tasks", new { id = item.Id, isFromProject = true }, new { @class = "btn btn-outline-primary btn-sm" })
+                                            @Html.ActionLink("Edit", "Edit", "Tasks", new { id = item.Id, isFromProject = true }, new { @class = "btn btn-outline-secondary btn-sm" })
+                                            @Html.ActionLink("Delete", "Delete", "Tasks", new { id = item.Id, isFromProject = true }, new { @class = "btn btn-outline-danger btn-sm" })
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                            <div>
-                                <div class="small fw-bold">@member.Name</div>
-                                <small class="text-muted">@member.Role</small>
+                        }
+                    }
+                    else
+                    {
+                        <div class="col-12">
+                            <div class="alert alert-info text-center">
+                                <i class="fas fa-tasks me-2"></i>No tasks available for this project
                             </div>
                         </div>
                     }
                 </div>
             </div>
-        </div> *@
+
+            <!-- Members Panel - Right Side -->
+            <div class="col-lg-4">
+                <div class="card shadow-sm">
+                        @if (ViewBag.Members != null && ViewBag.Members.Count > 0)
+                        {
+                            @foreach (var item in ViewBag.Members)
+                            {
+                                <div class="card-header bg-primary text-white">
+                                    <h5 class="card-title mb-0">
+                                        <i class="fas fa-users me-2"></i>Project Members
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center mb-3 p-2 border rounded">
+                                        <div class="bg-primary text-white rounded-circle me-3 d-flex align-items-center justify-content-center"
+                                             style="width: 40px; height: 40px; font-size: 1rem; font-weight: bold;">
+                                            @item.UserName.Substring(0, 1)
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <div class="fw-bold">@item.UserName</div>
+                                            <small class="text-muted">@item.RoleName</small>
+                                        </div>
+                                    </div>
+                            </div>
+                            <div class="card-footer bg-light">
+                                @Html.ActionLink("Add", "Create", "UserRoles", new { userId = item.UserId, projectId = item.ProjectId }, new { @class = "btn btn-outline-primary btn-sm" })
+                            </div>
+                            }
+                        }
+                        else
+                        {
+                            <div class="text-center text-muted py-3">
+                                <i class="fas fa-user-slash fa-2x mb-2"></i>
+                                <p>No members assigned to this project</p>
+                            </div>
+                        }
+                </div>
+            </div>
+        </div>
     </div>
 </div>
-@* <div>
-    @Html.ActionLink("Edit", "Edit", new { /* id = Model.PrimaryKey */ }) |
+<div>
     <a asp-action="Index">Back to List</a>
 </div>
- *@
