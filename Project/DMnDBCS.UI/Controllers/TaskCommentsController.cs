@@ -1,19 +1,19 @@
-﻿using DMnDBCS.Domain.Entities;
-using DMnDBCS.UI.Services.ProjectResources;
+﻿using DMnDBCS.UI.Services.Jwt;
 using DMnDBCS.UI.Services.TaskComments;
+using DMnDBCS.UI.Services.Users;
 using Microsoft.AspNetCore.Mvc;
-using System.Reflection;
 
 namespace DMnDBCS.UI.Controllers
 {
-    public class TaskCommentsController(ITaskCommentsService taskCommentsService) : Controller
+    public class TaskCommentsController(ITaskCommentsService taskCommentsService, IJwtService jwtService) : Controller
     {
         private readonly ITaskCommentsService _taskCommentsService = taskCommentsService;
+        private readonly IJwtService _jwtService = jwtService;
 
         // GET: TaskCommentsController/Create
         public ActionResult Create(int taskId)
         {
-            return View(new TaskComment() { TaskId = taskId });
+            return View(new TaskComment() { TaskId = taskId, AuthorId = int.Parse(_jwtService.GetUserId()!) });
         }
 
         // POST: TaskCommentsController/Create

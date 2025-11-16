@@ -7,7 +7,7 @@ public static class ProjectEndpoints
 {
     public static void MapProjectEndpoints (this IEndpointRouteBuilder routes)
     {
-        var group = routes.MapGroup("/api/projects").WithTags(nameof(Project));
+        var group = routes.MapGroup("/api/projects").WithTags(nameof(Project)).RequireAuthorization();
 
         group.MapGet("/", async ([FromServices] IProjectRepository repository) =>
         {

@@ -9,7 +9,7 @@ public static class TaskEndpoints
 {
     public static void MapTaskEndpoints (this IEndpointRouteBuilder routes)
     {
-        var group = routes.MapGroup("/api/tasks").WithTags(nameof(Domain.Entities.Task));
+        var group = routes.MapGroup("/api/tasks").WithTags(nameof(Domain.Entities.Task)).RequireAuthorization();
 
         group.MapGet("/executor/{id}", async (int id, [FromServices] ITaskRepository repository) =>
         {

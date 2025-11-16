@@ -1,6 +1,7 @@
 ﻿using DMnDBCS.UI.Services.Auth;
 using DMnDBCS.UI.Services.Jwt;
 using DMnDBCS.UI.Services.Logs;
+using DMnDBCS.UI.Services.Notifications;
 using DMnDBCS.UI.Services.ProjectResources;
 using DMnDBCS.UI.Services.Projects;
 using DMnDBCS.UI.Services.Roles;
@@ -39,6 +40,8 @@ namespace DMnDBCS.UI.Extensions
                 .AddHttpClient<IUsersService, ApiUsersService>(opt => opt.BaseAddress = new Uri(api + "users"));
             webapplicationBuilder.Services
                 .AddHttpClient<IRolesService, ApiRolesService>(opt => opt.BaseAddress = new Uri(api + "roles"));
+            webapplicationBuilder.Services
+                .AddHttpClient<INotificationsService, ApiNotificationsService>(opt => opt.BaseAddress = new Uri(api + "notifications"));
 
             webapplicationBuilder.Services.AddHttpClient();
         }

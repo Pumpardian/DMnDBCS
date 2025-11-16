@@ -43,9 +43,21 @@ namespace DMnDBCS.API.Repositories.Users
             });
         }
 
-        public async Task<IEnumerable<User>> GetAllNotInProject(int projectId)
+        public async Task<IEnumerable<User>> GetAllNotInProjectAsync(int projectId)
         {
             const string procedureName = "get_users_not_in_project";
+
+            return await _connection.QueryDBEntities(procedureName, reader => new User
+            {
+                Id = reader.GetInt32(0),
+                Name = reader.GetString(1),
+                Email = reader.GetString(2)
+            }, projectId);
+        }
+
+        public async Task<IEnumerable<User>> GetAllInProjectAsync(int projectId)
+        {
+            const string procedureName = "get_users_in_project";
 
             return await _connection.QueryDBEntities(procedureName, reader => new User
             {

@@ -32,6 +32,7 @@ app.MapUserRoleEndpoints();
 app.MapUserProfileEndpoints();
 app.MapTaskStatusEndpoints();
 app.MapRoleEndpoints();
+app.MapNotificationEndpoints();
 
 app.MapAuthEndpoints();
 

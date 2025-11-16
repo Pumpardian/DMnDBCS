@@ -9,7 +9,7 @@ public static class UserProfileEndpoints
 {
     public static void MapUserProfileEndpoints (this IEndpointRouteBuilder routes)
     {
-        var group = routes.MapGroup("/api/userprofiles").WithTags(nameof(UserProfile)).DisableAntiforgery();
+        var group = routes.MapGroup("/api/userprofiles").WithTags(nameof(UserProfile)).DisableAntiforgery().RequireAuthorization();
 
         group.MapGet("/{id}", async (int id, [FromServices] IUserProfileRepository repository) =>
         {

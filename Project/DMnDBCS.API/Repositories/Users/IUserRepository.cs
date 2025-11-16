@@ -7,7 +7,8 @@ namespace DMnDBCS.API.Repositories.Users
         Task<User> GetByIdAsync(int id);
         Task<User> GetByEmailAsync(string email);
         Task<IEnumerable<User>> GetAllAsync();
-        Task<IEnumerable<User>> GetAllNotInProject(int projectId);
+        Task<IEnumerable<User>> GetAllNotInProjectAsync(int projectId);
+        Task<IEnumerable<User>> GetAllInProjectAsync(int projectId);
         Task<bool> CreateAsync(User user);
         Task<bool> UpdateAsync(User user);
         Task<bool> DeleteAsync(int id);

@@ -1,0 +1,79 @@
+﻿@{
+
+}
+
+@model List<Notification>
+
+<div class="dropdown">
+    <button class="btn btn-link position-relative text-dark dropdown-toggle"
+            type="button"
+            id="notificationDropdown"
+            data-bs-toggle="dropdown"
+            aria-expanded="false"
+            style="text-decoration: none;">
+        <i class="bi bi-bell fs-5"></i>
+    </button>
+
+    <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="notificationDropdown"
+        style="width: 480px; max-height: 600px; overflow-y: auto;">
+        <li class="dropdown-header">
+            <div class="d-flex justify-content-between align-items-center w-100">
+                <strong>Notifications</strong>
+                @if (Model != null && Model.Any())
+                {
+                    <span class="badge bg-primary">@Model.Count</span>
+                }
+            </div>
+        </li>
+
+        @if (Model != null && !Model.Any())
+        {
+            <li class="text-center py-3 text-muted">
+                <i class="bi bi-bell-slash d-block fs-2 mb-2"></i>
+                <small>No notifications</small>
+            </li>
+        }
+        else if (Model != null)
+        {
+            foreach (var notification in Model)
+            {
+                <li>
+                    <div class="dropdown-item-text p-3" onclick="event.stopPropagation()">
+                        <div class="row g-2 align-items-start">
+                            <div class="col-auto">
+                                @if (notification.ProjectId.HasValue)
+                                {
+                                    <i class="bi bi-folder text-primary mt-1"></i>
+                                }
+                                else if (notification.UserId.HasValue)
+                                {
+                                    <i class="bi bi-person text-success mt-1"></i>
+                                }
+                            </div>
+
+                            <div class="col">
+                                <div class="small text-wrap lh-base mb-2">
+                                    @notification.Message
+                                </div>
+
+                                <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+                                    <small class="text-muted">@notification.Time.ToString("MMM dd, HH:mm")</small>
+                                    <span class="badge bg-secondary bg-opacity-25 text-dark">
+                                        @if (notification.ProjectId.HasValue)
+                                        {
+                                            <text>Project #@notification.ProjectId</text>
+                                        }
+                                        else if (notification.UserId.HasValue)
+                                        {
+                                            <text>To You</text>
+                                        }
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </li>
+            }
+        }
+    </ul>
+</div>

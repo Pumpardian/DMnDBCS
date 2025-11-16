@@ -28,6 +28,30 @@ namespace DMnDBCS.UI.Services.Users
             throw new HttpRequestException(msg);
         }
 
+        public async Task<ResponseData<List<User>>> GetAllInProjectAsync(int projectId)
+        {
+            var urlString = _client.BaseAddress!.AbsoluteUri + $"/in-project/{projectId}";
+
+            _tokenAccessor.SetAuthHeaderAsync(_client);
+
+            var response = await _client.GetAsync(urlString);
+            if (response.IsSuccessStatusCode)
+            {
+                try
+                {
+                    return ResponseData<List<User>>.Success((await response.Content.ReadFromJsonAsync<List<User>>(_jsonSerializerOptions))!);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError($"Error: {ex.Message}");
+                }
+            }
+
+            var msg = $"Error while receiving user data. Error: {response.StatusCode}";
+            _logger.LogError(msg);
+            return ResponseData<List<User>>.Error(msg);
+        }
+
         public async Task<ResponseData<List<User>>> GetAllNotInProjectAsync(int projectId)
         {
             var urlString = _client.BaseAddress!.AbsoluteUri + $"/not-in-project/{projectId}";

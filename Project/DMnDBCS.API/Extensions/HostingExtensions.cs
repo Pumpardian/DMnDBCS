@@ -1,4 +1,5 @@
 ﻿using DMnDBCS.API.Repositories.Logs;
+using DMnDBCS.API.Repositories.Notifications;
 using DMnDBCS.API.Repositories.ProjectResources;
 using DMnDBCS.API.Repositories.Projects;
 using DMnDBCS.API.Repositories.Roles;
@@ -39,7 +40,8 @@ namespace DMnDBCS.API.Extensions
                 .AddScoped<ITaskStatusRepository, TaskStatusRepository>()
                 .AddScoped<IUserRoleRepository, UserRoleRepository>()
                 .AddScoped<IUserProfileRepository, UserProfileRepository>()
-                .AddScoped<IRoleRepository, RoleRepository>();
+                .AddScoped<IRoleRepository, RoleRepository>()
+                .AddScoped<INotificationRepository, NotificationRepository>();
 
             builder.Services.AddSingleton<IImageService, ImageService>();
             builder.Services.AddHttpContextAccessor();

@@ -4,7 +4,7 @@
   "libraries": [
     {
       "library": "bootstrap-icons@1.13.1",
-      "destination": "wwwroot/lib/bootstrap-icons/"
+      "destination": "wwwroot/bootstrap-icons/"
     }
   ]
 }

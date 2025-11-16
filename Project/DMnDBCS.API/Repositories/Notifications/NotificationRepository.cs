@@ -43,8 +43,22 @@ namespace DMnDBCS.API.Repositories.Notifications
                 Id = reader.GetInt32(0),
                 Message = reader.GetString(1),
                 Time = reader.GetDateTime(2),
-                ProjectId = null,
-                UserId = id
+                UserId = reader.IsDBNull(3) ? null : reader.GetInt32(3),
+                ProjectId = reader.IsDBNull(4) ? null : reader.GetInt32(4),
+            }, id);
+        }
+
+        public async Task<Notification> GetByIdAsync(int id)
+        {
+            const string procedureName = "get_notification";
+
+            return await _connection.QueryDBEntity(procedureName, reader => new Notification
+            {
+                Id = reader.GetInt32(0),
+                Message = reader.GetString(1),
+                Time = reader.GetDateTime(2),
+                UserId = reader.IsDBNull(3) ? null : reader.GetInt32(3),
+                ProjectId = reader.IsDBNull(4) ? null : reader.GetInt32(4),
             }, id);
         }
 

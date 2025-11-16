@@ -71,7 +71,7 @@ BEGIN
 			INSERT INTO notifications (message, time, user_id, project_id)
 			VALUES ('The resource in project '||
 			(SELECT title FROM projects WHERE id = NEW.project_id)||
-			' of type '||OLD.type||' has been replaced with',
+			' of type '||OLD.type||' has been replaced with'||NEW.type,
 			CURRENT_TIMESTAMP, NULL, NEW.project_id);
 			
 		WHEN OLD.project_id != NEW.project_id THEN

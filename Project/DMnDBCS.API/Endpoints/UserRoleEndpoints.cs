@@ -9,7 +9,7 @@ public static class UserRoleEndpoints
 {
     public static void MapUserRoleEndpoints (this IEndpointRouteBuilder routes)
     {
-        var group = routes.MapGroup("/api/userroles").WithTags(nameof(UserRole));
+        var group = routes.MapGroup("/api/userroles").WithTags(nameof(UserRole)).RequireAuthorization();
 
         group.MapGet("/project/{id}", async (int id, [FromServices] IUserRoleRepository repository) =>
         {

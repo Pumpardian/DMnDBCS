@@ -8,7 +8,7 @@ public static class TaskCommentEndpoints
 {
     public static void MapTaskCommentEndpoints (this IEndpointRouteBuilder routes)
     {
-        var group = routes.MapGroup("/api/taskcomments").WithTags(nameof(TaskComment));
+        var group = routes.MapGroup("/api/taskcomments").WithTags(nameof(TaskComment)).RequireAuthorization();
 
         group.MapGet("/task/{id}", async (int id, [FromServices] ITaskCommentRepository repository) =>
         {

@@ -4,8 +4,11 @@
 <div class="navbar-nav ml-auto">
     @if (!string.IsNullOrEmpty(ViewBag.Username))
     {
+        @await Component.InvokeAsync("Notifications")
+
         <span class="navbar-text text-success">
-            ✓ Logged In as @ViewBag.Username
+            ✓ Logged In as
+            <a asp-controller="UserProfiles" asp-action="Edit" asp-route-id="@ViewBag.UserId">@ViewBag.Username</a>
         </span>
         <a class="nav-link" asp-controller="Auth" asp-action="Logout">Logout</a>
     }

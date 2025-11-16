@@ -6,6 +6,7 @@ namespace DMnDBCS.API.Repositories.Notifications
     {
         Task<IEnumerable<Notification>> GetAllForUserAsync(int id);
         Task<IEnumerable<Notification>> GetAllForProjectAsync(int id);
+        Task<Notification> GetByIdAsync(int id);
         Task<bool> CreateAsync(Notification notification);
         Task<bool> UpdateAsync(Notification notification);
         Task<bool> DeleteAsync(int id);

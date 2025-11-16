@@ -8,7 +8,7 @@ public static class UserEndpoints
 {
     public static void MapUserEndpoints (this IEndpointRouteBuilder routes)
     {
-        var group = routes.MapGroup("/api/users").WithTags(nameof(User));
+        var group = routes.MapGroup("/api/users").WithTags(nameof(User)).RequireAuthorization();
 
         group.MapGet("/", async ([FromServices] IUserRepository repository) =>
         {
@@ -32,7 +32,7 @@ public static class UserEndpoints
         {
             try
             {
-                var data = await repository.GetAllNotInProject(projectId);
+                var data = await repository.GetAllNotInProjectAsync(projectId);
                 return TypedResults.Ok(data);
             }
             catch (Exception ex)
@@ -44,6 +44,24 @@ public static class UserEndpoints
             }
         })
         .WithName("GetAllUsersNotInProject")
+        .WithOpenApi();
+
+        group.MapGet("/in-project/{projectId}", async (int projectId, [FromServices] IUserRepository repository) =>
+        {
+            try
+            {
+                var data = await repository.GetAllInProjectAsync(projectId);
+                return TypedResults.Ok(data);
+            }
+            catch (Exception ex)
+            {
+                return Results.Problem(
+                    detail: ex.ToString(),
+                    title: "Error occured",
+                    statusCode: 500);
+            }
+        })
+        .WithName("GetAllUsersInProject")
         .WithOpenApi();
 
         group.MapGet("/{identifier}", async (string identifier, [FromServices] IUserRepository repository) =>
@@ -70,7 +88,8 @@ public static class UserEndpoints
             }
         })
         .WithName("GetUserByIdentifier")
-        .WithOpenApi();
+        .WithOpenApi()
+        .AllowAnonymous();
 
         group.MapPut("/{id}", async (int id, User input, [FromServices] IUserRepository repository) =>
         {

@@ -507,6 +507,20 @@ BEGIN
     DELETE FROM notifications WHERE id = _notification_id; 
 END; $$;
 
+----GET BY ID
+CREATE OR REPLACE PROCEDURE get_notification(
+    _id INTEGER,
+    INOUT _ref refcursor DEFAULT 'notifications_cursor'
+)
+LANGUAGE plpgsql AS $$
+BEGIN
+    OPEN _ref FOR
+    SELECT id AS notification_id, message AS notification_message, 
+           time AS notification_time, user_id, project_id
+    FROM notifications
+    WHERE id = _id;
+END; $$;
+
 ----GET NOTIFICATIONS FOR USER
 CREATE OR REPLACE PROCEDURE get_notifications_for_user(
     _user_id INTEGER,
@@ -516,9 +530,19 @@ LANGUAGE plpgsql AS $$
 BEGIN
     OPEN _ref FOR
     SELECT id AS notification_id, message AS notification_message, 
-           time AS notification_time
+           time AS notification_time, user_id, project_id
     FROM notifications
-    WHERE user_id = _user_id;
+    WHERE user_id = _user_id
+	UNION
+	SELECT id AS notification_id, message AS notification_message, 
+           time AS notification_time, user_id, project_id
+    FROM notifications
+    WHERE project_id IN
+	(
+        SELECT ur.project_id 
+        FROM userroles ur 
+        WHERE ur.user_id = _user_id
+    );
 END; $$;
 
 ----GET NOTIFICATIONS FOR PROJECT
@@ -575,6 +599,24 @@ BEGIN
     SELECT u.id, u.name, u.email
     FROM users u
     WHERE u.id NOT IN
+	(
+        SELECT ur.user_id 
+        FROM userroles ur 
+        WHERE ur.project_id = _project_id
+    );
+END; $$;
+
+----GET USERS THAT ARE IN PROJECT
+CREATE OR REPLACE PROCEDURE get_users_in_project(
+    _project_id INTEGER,
+    INOUT _ref refcursor DEFAULT 'user_cursor'
+)
+LANGUAGE plpgsql AS $$
+BEGIN
+    OPEN _ref FOR
+    SELECT u.id, u.name, u.email
+    FROM users u
+    WHERE u.id IN
 	(
         SELECT ur.user_id 
         FROM userroles ur 

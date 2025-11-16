@@ -7,7 +7,7 @@ public static class LogEndpoints
 {
     public static void MapLogEndpoints (this IEndpointRouteBuilder routes)
     {
-        var group = routes.MapGroup("/api/logs").WithTags(nameof(Log));
+        var group = routes.MapGroup("/api/logs").WithTags(nameof(Log)).RequireAuthorization();
 
         group.MapGet("/", async ([FromServices] ILogRepository repository) =>
         {
@@ -25,6 +25,6 @@ public static class LogEndpoints
             }
         })
         .WithName("GetAllLogs")
-        .WithOpenApi().RequireAuthorization();
+        .WithOpenApi();
     }
 }

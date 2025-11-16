@@ -2,15 +2,19 @@
 using DMnDBCS.UI.Services.TaskComments;
 using DMnDBCS.UI.Services.Tasks;
 using DMnDBCS.UI.Services.TaskStatuses;
+using DMnDBCS.UI.Services.Users;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.CodeAnalysis;
 
 namespace DMnDBCS.UI.Controllers
 {
-    public class TasksController(ITasksService tasksService, ITaskCommentsService taskCommentsService, ITaskStatusesService taskStatusesService, IJwtService jwtService) : Controller
+    public class TasksController(ITasksService tasksService, ITaskCommentsService taskCommentsService, ITaskStatusesService taskStatusesService,
+        IJwtService jwtService, IUsersService usersService) : Controller
     {
         private readonly ITasksService _taskService = tasksService;
         private readonly ITaskCommentsService _taskCommentsService = taskCommentsService;
         private readonly ITaskStatusesService _taskStatusesService = taskStatusesService;
+        private readonly IUsersService _usersService = usersService;
         private readonly IJwtService _jwtService = jwtService;
 
         // GET: TasksController
@@ -49,6 +53,13 @@ namespace DMnDBCS.UI.Controllers
         // GET: TasksController/Create
         public async Task<ActionResult> Create(int projectId)
         {
+            var usersResponse = await _usersService.GetAllInProjectAsync(projectId);
+            if (!usersResponse.IsSuccessful)
+            {
+                return NotFound(usersResponse.ErrorMessage);
+            }
+            ViewBag.Users = usersResponse.Data;
+
             var statusesResponse = await _taskStatusesService.GetAllAsync();
             if (!statusesResponse.IsSuccessful)
             {
@@ -56,7 +67,7 @@ namespace DMnDBCS.UI.Controllers
             }
             ViewBag.Statuses = statusesResponse.Data;
 
-            return View(new Domain.Entities.Task() { ProjectId = projectId });
+            return View(new Domain.Entities.Task() { ProjectId = projectId, CreationDate = DateOnly.FromDateTime(DateTime.Today) });
         }
 
         // POST: TasksController/Create
@@ -108,6 +119,13 @@ namespace DMnDBCS.UI.Controllers
             {
                 return NotFound(response.ErrorMessage);
             }
+
+            var usersResponse = await _usersService.GetAllInProjectAsync(response.Data.ProjectId);
+            if (!usersResponse.IsSuccessful)
+            {
+                return NotFound(usersResponse.ErrorMessage);
+            }
+            ViewBag.Users = usersResponse.Data;
 
             var statusesResponse = await _taskStatusesService.GetAllAsync();
             if (!statusesResponse.IsSuccessful)

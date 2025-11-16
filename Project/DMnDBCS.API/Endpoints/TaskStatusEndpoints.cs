@@ -6,7 +6,7 @@ public static class TaskStatusEndpoints
 {
     public static void MapTaskStatusEndpoints (this IEndpointRouteBuilder routes)
     {
-        var group = routes.MapGroup("/api/taskstatuses").WithTags(nameof(Domain.Entities.TaskStatus));
+        var group = routes.MapGroup("/api/taskstatuses").WithTags(nameof(Domain.Entities.TaskStatus)).RequireAuthorization();
 
         group.MapGet("/", async (ITaskStatusRepository repository) =>
         {
