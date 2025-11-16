@@ -61,7 +61,7 @@
         </dd>
     </dl>
     
-    <form asp-action="Delete">
+    <form asp-action="Delete" asp-route-projectId="@Model.ProjectId">
         <input type="submit" value="Delete" class="btn btn-danger" /> |
         @if (ViewBag.FromProject)
         {

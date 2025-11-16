@@ -36,15 +36,15 @@ namespace DMnDBCS.API.Repositories.UserRoles
             }, projectId);
         }
 
-        public async Task<UserRole> GetByIdUserAndProjectIdsAsync(int userId, int projectId)
+        public async Task<UserRole> GetByUserAndProjectIdsAsync(int userId, int projectId)
         {
-            const string procedureName = "get_userrole";
+            const string procedureName = "get_user_project_role";
 
             return await _connection.QueryDBEntity(procedureName, reader => new UserRole
             {
                 UserId = userId,
-                RoleId = reader.GetInt32(1),
-                RoleName = reader.GetString(2),
+                RoleId = reader.GetInt32(0),
+                RoleName = reader.GetString(1),
                 ProjectId = projectId
             }, userId, projectId);
         }

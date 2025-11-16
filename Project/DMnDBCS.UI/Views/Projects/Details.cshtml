@@ -123,39 +123,55 @@
             <!-- Members Panel - Right Side -->
             <div class="col-lg-4">
                 <div class="card shadow-sm">
-                        @if (ViewBag.Members != null && ViewBag.Members.Count > 0)
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-users me-2"></i>Project Members
+                        </h5>
+                    </div>
+                    @if (ViewBag.Members != null && ViewBag.Members.Count > 0)
+                    {
+                        @foreach (var item in ViewBag.Members)
                         {
-                            @foreach (var item in ViewBag.Members)
-                            {
-                                <div class="card-header bg-primary text-white">
-                                    <h5 class="card-title mb-0">
-                                        <i class="fas fa-users me-2"></i>Project Members
-                                    </h5>
-                                </div>
-                                <div class="card-body">
-                                    <div class="d-flex align-items-center mb-3 p-2 border rounded">
-                                        <div class="bg-primary text-white rounded-circle me-3 d-flex align-items-center justify-content-center"
-                                             style="width: 40px; height: 40px; font-size: 1rem; font-weight: bold;">
-                                            @item.UserName.Substring(0, 1)
-                                        </div>
-                                        <div class="flex-grow-1">
-                                            <div class="fw-bold">@item.UserName</div>
-                                            <small class="text-muted">@item.RoleName</small>
-                                        </div>
+                            <div class="card-body">
+                                <div class="d-flex align-items-center p-2 border rounded">
+                                    <div class="bg-primary text-white rounded-circle me-3 d-flex align-items-center justify-content-center"
+                                            style="width: 40px; height: 40px; font-size: 1rem; font-weight: bold;">
+                                        @item.UserName.Substring(0, 1)
                                     </div>
+                                    <div class="flex-grow-1">
+                                        <div class="fw-bold">@item.UserName</div>
+                                        <small class="text-muted">@item.RoleName</small>
+                                    </div>
+                                    <div class="dropdown">
+                                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                            <i class="fas fa-ellipsis-v"></i>
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            <li>
+                                                @Html.ActionLink("View Profile", "Details", "UserProfiles", new { id = item.UserId }, new { @class = "dropdown-item" })
+                                            </li>
+                                            <li>
+                                                @Html.ActionLink("Edit", "Edit", "UserRoles", new { userId = item.UserId, projectId = item.ProjectId }, new { @class = "dropdown-item" })
+                                            </li>
+                                            <li>
+                                                @Html.ActionLink("Remove", "Delete", "UserRoles", new { userId = item.UserId, projectId = item.ProjectId }, new { @class = "dropdown-item" })
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="card-footer bg-light">
-                                @Html.ActionLink("Add", "Create", "UserRoles", new { userId = item.UserId, projectId = item.ProjectId }, new { @class = "btn btn-outline-primary btn-sm" })
-                            </div>
-                            }
                         }
-                        else
-                        {
-                            <div class="text-center text-muted py-3">
-                                <i class="fas fa-user-slash fa-2x mb-2"></i>
-                                <p>No members assigned to this project</p>
-                            </div>
-                        }
+                    }
+                    else
+                    {
+                        <div class="text-center text-muted py-3">
+                            <i class="fas fa-user-slash fa-2x mb-2"></i>
+                            <p>No members assigned to this project</p>
+                        </div>
+                    }
+                    <div class="card-footer bg-light">
+                        @Html.ActionLink("Add", "Create", "UserRoles", new { projectId = Model.Id }, new { @class = "btn btn-outline-primary btn-sm" })
+                    </div>
                 </div>
             </div>
         </div>

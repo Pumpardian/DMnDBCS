@@ -1,9 +1,11 @@
 ﻿using DMnDBCS.API.Repositories.Logs;
 using DMnDBCS.API.Repositories.ProjectResources;
 using DMnDBCS.API.Repositories.Projects;
+using DMnDBCS.API.Repositories.Roles;
 using DMnDBCS.API.Repositories.TaskComments;
 using DMnDBCS.API.Repositories.Tasks;
 using DMnDBCS.API.Repositories.TaskStatuses;
+using DMnDBCS.API.Repositories.UserProfiles;
 using DMnDBCS.API.Repositories.UserRoles;
 using DMnDBCS.API.Repositories.Users;
 using DMnDBCS.API.Services;
@@ -35,7 +37,12 @@ namespace DMnDBCS.API.Extensions
                 .AddScoped<ITaskRepository, TaskRepository>()
                 .AddScoped<ITaskCommentRepository, TaskCommentRepository>()
                 .AddScoped<ITaskStatusRepository, TaskStatusRepository>()
-                .AddScoped<IUserRoleRepository, UserRoleRepository>();
+                .AddScoped<IUserRoleRepository, UserRoleRepository>()
+                .AddScoped<IUserProfileRepository, UserProfileRepository>()
+                .AddScoped<IRoleRepository, RoleRepository>();
+
+            builder.Services.AddSingleton<IImageService, ImageService>();
+            builder.Services.AddHttpContextAccessor();
         }
 
         internal static void SetupAuth(this WebApplicationBuilder builder)

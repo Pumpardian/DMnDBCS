@@ -95,13 +95,13 @@ namespace DMnDBCS.UI.Controllers
 
         // POST: ProjectResourcesController/Delete/5
         [HttpPost]
-        public async Task<ActionResult> Delete(int id, IFormCollection collection)
+        public async Task<ActionResult> Delete(int id, int projectId)
         {
             try
             {
                 await _projectResourcesService.DeleteAsync(id);
 
-                return RedirectToAction("Details", "Projects", new { id = ViewBag.ProjectId });
+                return RedirectToAction("Details", "Projects", new { id = projectId });
             }
             catch
             {

@@ -2,8 +2,10 @@
 
 namespace DMnDBCS.UI.Models
 {
-    public class RegisterViewModel
+    public class UserInfoViewModel
     {
+        public int Id { get; set; }
+
         [Required]
         [StringLength(100, MinimumLength = 2)]
         public string Name { get; set; } = string.Empty;
@@ -12,16 +14,18 @@ namespace DMnDBCS.UI.Models
         [EmailAddress]
         public string Email { get; set; } = string.Empty;
 
-        [Required]
+        [StringLength(100)]
+        [DataType(DataType.Password)]
+        public string? NewPassword { get; set; } = string.Empty;
+
         [StringLength(100)]
         [DataType(DataType.Password)]
         public string Password { get; set; } = string.Empty;
 
-        [Required]
         [DataType(DataType.Password)]
-        [Compare(nameof(Password))]
+        [Compare(nameof(NewPassword))]
         [Display(Name = "Confirm Password")]
-        public string ConfirmPassword { get; set; } = string.Empty;
+        public string? ConfirmPassword { get; set; } = string.Empty;
 
         [Required]
         [DataType(DataType.PhoneNumber)]
@@ -34,6 +38,9 @@ namespace DMnDBCS.UI.Models
         [DataType(DataType.Date)]
         [Display(Name = "Date of Birth")]
         public DateOnly DateOfBirth { get; set; }
+
+        [DataType(DataType.ImageUrl)]
+        public string? ProfilePicture { get; set; }
 
         [Display(Name = "Profile Picture")]
         [DataType(DataType.Upload)]

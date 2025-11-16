@@ -1,0 +1,141 @@
+﻿using DMnDBCS.UI.Models;
+using DMnDBCS.UI.Services.Jwt;
+using DMnDBCS.UI.Services.UserProfiles;
+using DMnDBCS.UI.Services.Users;
+using Microsoft.AspNetCore.Mvc;
+using System.Net.Http;
+using System.Text.RegularExpressions;
+
+namespace DMnDBCS.UI.Controllers
+{
+    public class UserProfilesController(HttpClient httpClient, IConfiguration configuration, IUserProfilesService userProfilesService, IUsersService usersService, IJwtService jwtService) : Controller
+    {
+        private readonly HttpClient _client = httpClient;
+        private readonly IConfiguration _configuration = configuration;
+        private readonly IUserProfilesService _userProfilesService = userProfilesService;
+        private readonly IUsersService _usersService = usersService;
+        private readonly IJwtService _jwtService = jwtService;
+
+        // GET: UserProfilesController/Details/5
+        public async Task<ActionResult> Details(int id)
+        {
+            var userResponse = await _usersService.GetByIdAsync(id);
+            if (!userResponse.IsSuccessful || userResponse.Data == null)
+            {
+                return NotFound(userResponse.ErrorMessage);
+            }
+
+            var profileResponse = await _userProfilesService.GetByIdAsync(id);
+            if (!profileResponse.IsSuccessful || profileResponse.Data == null)
+            {
+                return NotFound(profileResponse.ErrorMessage);
+            }
+
+            if (int.TryParse(_jwtService.GetUserId(), out int userId) && userId == id)
+            {
+                ViewBag.CanEdit = true;
+            }
+
+            var info = new UserInfoViewModel()
+            {
+                Id = id,
+                Name = userResponse.Data.Name,
+                Email = userResponse.Data.Email,
+                Phone = profileResponse.Data.Phone,
+                Address = profileResponse.Data.Address,
+                DateOfBirth = profileResponse.Data.DateOfBirth,
+                ProfilePicture = profileResponse.Data.ProfilePicture
+            };
+
+            return View(info);
+        }
+
+        // GET: UserProfilesController/Edit/5
+        public async Task<ActionResult> Edit(int id)
+        {
+            var userResponse = await _usersService.GetByIdAsync(id);
+            if (!userResponse.IsSuccessful || userResponse.Data == null)
+            {
+                return NotFound(userResponse.ErrorMessage);
+            }
+
+            var profileResponse = await _userProfilesService.GetByIdAsync(id);
+            if (!profileResponse.IsSuccessful || profileResponse.Data == null)
+            {
+                return NotFound(profileResponse.ErrorMessage);
+            }
+
+            if (int.TryParse(_jwtService.GetUserId(), out int userId) && userId == id)
+            {
+                ViewBag.CanEdit = true;
+            }
+
+            var info = new UserInfoViewModel()
+            {
+                Id = id,
+                Name = userResponse.Data.Name,
+                Email = userResponse.Data.Email,
+                Phone = profileResponse.Data.Phone,
+                Address = profileResponse.Data.Address,
+                DateOfBirth = profileResponse.Data.DateOfBirth,
+            };
+
+            return View(info);
+        }
+
+        // POST: UserProfilesController/Edit/5
+        [HttpPost]
+        public async Task<ActionResult> Edit(UserInfoViewModel userInfo)
+        {
+            try
+            {
+                var apiBaseUrl = _configuration["UriData:ApiUri"];
+                var loginResponse = await _client.PostAsJsonAsync($"{apiBaseUrl}auth/login",
+                    new { userInfo.Email, userInfo.Password });
+
+                if (!loginResponse.IsSuccessStatusCode)
+                {
+                    ModelState.AddModelError(string.Empty, "Invalid password");
+                    return View(userInfo);
+                }
+
+                if (!ModelState.IsValid)
+                {
+                    return View(userInfo);
+                }
+
+                string cleanPhone = userInfo.Phone.Replace(" ", "").Replace("-", "");
+                var regex = new Regex(@"^\+375(25|29|33|44|17)\d{7}$");
+
+                if (!regex.IsMatch(cleanPhone))
+                {
+                    ModelState.AddModelError(nameof(userInfo.Phone), "Phone format is +375 XX XXXXXXX");
+                    return View(userInfo);
+                }
+
+                await _usersService.UpdateAsync(new User()
+                {
+                    Id = userInfo.Id,
+                    Email = userInfo.Email,
+                    Name = userInfo.Name,
+                    Password = userInfo.NewPassword ?? userInfo.Password
+                });
+
+                await _userProfilesService.UpdateAsync(new UserProfile()
+                {
+                    UserId = userInfo.Id,
+                    Phone = cleanPhone,
+                    Address = userInfo.Address,
+                    DateOfBirth = userInfo.DateOfBirth,
+                    ProfilePicture = userInfo.ProfilePicture,
+                }, userInfo.ProfilePictureFile);
+
+                return RedirectToAction("Index", "Home");
+            }
+            catch
+            {
+                return View();
+            }
+        }
+    }
+}

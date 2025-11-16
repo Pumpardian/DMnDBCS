@@ -68,7 +68,7 @@ public static class ProjectResourceEndpoints
             try
             {
                 var data = await repository.CreateAsync(model);
-                return TypedResults.Created($"{model.Id}", model.Id);
+                return data ? TypedResults.Created($"/api/projectresources/{model.Id}", model) : TypedResults.BadRequest();
             }
             catch (Exception ex)
             {

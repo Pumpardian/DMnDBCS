@@ -564,6 +564,24 @@ BEGIN
     FROM users u;
 END; $$;
 
+----GET USERS THAT ARE NOT IN PROJECT
+CREATE OR REPLACE PROCEDURE get_users_not_in_project(
+    _project_id INTEGER,
+    INOUT _ref refcursor DEFAULT 'user_cursor'
+)
+LANGUAGE plpgsql AS $$
+BEGIN
+    OPEN _ref FOR
+    SELECT u.id, u.name, u.email
+    FROM users u
+    WHERE u.id NOT IN
+	(
+        SELECT ur.user_id 
+        FROM userroles ur 
+        WHERE ur.project_id = _project_id
+    );
+END; $$;
+
 ----GET
 CREATE OR REPLACE PROCEDURE get_user(
     _user_id INTEGER,
@@ -575,6 +593,19 @@ BEGIN
 	SELECT id, name, email
     FROM users
     WHERE id = _user_id;
+END; $$;
+
+----GET BY EMAIL
+CREATE OR REPLACE PROCEDURE get_user_by_email(
+    _email VARCHAR,
+    INOUT _ref refcursor DEFAULT 'user_cursor'
+)
+LANGUAGE plpgsql AS $$
+BEGIN
+    OPEN _ref FOR
+	SELECT id, name, email
+    FROM users
+    WHERE email = _email;
 END; $$;
 
 ----UPDATE
@@ -606,6 +637,7 @@ CREATE OR REPLACE PROCEDURE delete_user(
 )
 LANGUAGE plpgsql AS $$
 BEGIN
+	DELETE FROM logs WHERE user_id = _user_id;
     DELETE FROM userroles WHERE user_id = _user_id;
     DELETE FROM userprofiles WHERE user_id = _user_id;
     DELETE FROM users WHERE id = _user_id;

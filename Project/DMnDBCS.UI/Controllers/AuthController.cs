@@ -1,12 +1,16 @@
 ﻿using DMnDBCS.UI.Models;
+using DMnDBCS.UI.Services.UserProfiles;
+using DMnDBCS.UI.Services.Users;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DMnDBCS.UI.Controllers
 {
-    public class AuthController(HttpClient httpClient, IConfiguration configuration) : Controller
+    public class AuthController(HttpClient httpClient, IConfiguration configuration, IUserProfilesService userProfilesService, IUsersService usersService) : Controller
     {
         private readonly HttpClient _httpClient = httpClient;
         private readonly IConfiguration _configuration = configuration;
+        private readonly IUserProfilesService _userProfilesService = userProfilesService;
+        private readonly IUsersService _usersService = usersService;
 
         [HttpGet]
         public IActionResult Login()
@@ -53,9 +57,33 @@ namespace DMnDBCS.UI.Controllers
                 return View(request);
             }
 
+            if (request.DateOfBirth > DateOnly.FromDateTime(DateTime.Today).AddYears(-18))
+            {
+                ModelState.AddModelError(nameof(request.DateOfBirth), "Person needs to be 18 y.o.");
+                return View(request);
+            }
+
             var apiBaseUrl = _configuration["UriData:ApiUri"];
-            var registerRequest = new { request.Name, request.Email, request.Password };
+            var registerRequest = new LoginRequest(request.Name, request.Email, request.Password);
             var response = await _httpClient.PostAsJsonAsync($"{apiBaseUrl}auth/register", registerRequest);
+
+            var userResponse = await _usersService.GetByEmailAsync(request.Email);
+
+            if (!response.IsSuccessStatusCode || !userResponse.IsSuccessful)
+            {
+                ModelState.AddModelError(string.Empty, "Registration failed. Please try again.");
+                return View(request);
+            }
+
+            var profile = new UserProfile()
+            {
+                UserId = userResponse.Data!.Id,
+                Phone = request.Phone,
+                Address = request.Address,
+                DateOfBirth = request.DateOfBirth,
+                ProfilePicture = null
+            };
+            await _userProfilesService.CreateAsync(profile, request.ProfilePictureFile);
 
             if (response.IsSuccessStatusCode)
             {

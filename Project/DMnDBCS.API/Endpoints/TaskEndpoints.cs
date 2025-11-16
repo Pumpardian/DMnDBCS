@@ -88,7 +88,7 @@ public static class TaskEndpoints
             try
             {
                 var data = await repository.CreateAsync(model);
-                return TypedResults.Ok(data);
+                return data ? TypedResults.Created($"/api/tasks/{model.Id}", model) : TypedResults.BadRequest();
             }
             catch (Exception ex)
             {

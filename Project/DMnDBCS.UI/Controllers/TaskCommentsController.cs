@@ -13,9 +13,7 @@ namespace DMnDBCS.UI.Controllers
         // GET: TaskCommentsController/Create
         public ActionResult Create(int taskId)
         {
-            ViewBag.TaskId = taskId;
-
-            return View();
+            return View(new TaskComment() { TaskId = taskId });
         }
 
         // POST: TaskCommentsController/Create
@@ -112,13 +110,13 @@ namespace DMnDBCS.UI.Controllers
 
         // POST: TaskCommentsController/Delete/5
         [HttpPost]
-        public async Task<ActionResult> Delete(int id, IFormCollection collection)
+        public async Task<ActionResult> Delete(int id, int taskId)
         {
             try
             {
                 await _taskCommentsService.DeleteAsync(id);
 
-                return RedirectToAction("Details", "Tasks", new { id = ViewBag.TaskId });
+                return RedirectToAction("Details", "Tasks", new { id = taskId });
             }
             catch
             {

@@ -16,7 +16,7 @@ public static class AuthEndpoints
         {
             try
             {
-                var isCreated = await repository.CreateAsync(new User() { Email = request.Email, Name = request.Name }, request.Password);
+                var isCreated = await repository.CreateAsync(new User() { Email = request.Email, Name = request.Name, Password = request.Password });
 
                 if (isCreated)
                 {
@@ -37,7 +37,7 @@ public static class AuthEndpoints
 
             if (user == null)
             {
-                return Results.Unauthorized();
+                return Results.BadRequest();
             }
 
             var token = tokenService.GenerateJwtToken(user);

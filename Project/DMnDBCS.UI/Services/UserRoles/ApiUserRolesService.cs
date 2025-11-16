@@ -1,5 +1,6 @@
 ﻿using DMnDBCS.Domain.Entities;
 using DMnDBCS.UI.Services.Auth;
+using Microsoft.CodeAnalysis;
 using System.Text.Json;
 
 namespace DMnDBCS.UI.Services.UserRoles
@@ -95,7 +96,7 @@ namespace DMnDBCS.UI.Services.UserRoles
 
         public async System.Threading.Tasks.Task UpdateAsync(UserRole userRole)
         {
-            var urlString = _client.BaseAddress!.AbsoluteUri;
+            var urlString = _client.BaseAddress!.AbsoluteUri + $"/{userRole.ProjectId}/{userRole.UserId}";
 
             _tokenAccessor.SetAuthHeaderAsync(_client);
 

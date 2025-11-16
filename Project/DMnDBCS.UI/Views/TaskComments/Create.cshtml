@@ -10,7 +10,7 @@
 <hr />
 <div class="row">
     <div class="col-md-4">
-        <form asp-action="Create">
+        <form asp-action="Create" asp-route-taskId="@Model.TaskId">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <div class="form-group">
                 <label asp-for="Content" class="control-label"></label>
@@ -30,7 +30,7 @@
 </div>
 
 <div>
-    <a asp-action="Details" asp-controller="Tasks" asp-route-id="@ViewBag.TaskId">Back to Task</a>
+    <a asp-action="Details" asp-controller="Tasks" asp-route-id="@Model.TaskId">Back to Task</a>
 </div>
 
 @section Scripts {

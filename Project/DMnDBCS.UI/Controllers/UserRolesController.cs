@@ -1,19 +1,37 @@
 ﻿using DMnDBCS.Domain.Entities;
+using DMnDBCS.UI.Services.Roles;
 using DMnDBCS.UI.Services.UserRoles;
+using DMnDBCS.UI.Services.Users;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.CodeAnalysis;
 
 namespace DMnDBCS.UI.Controllers
 {
-    public class UserRolesController(IUserRolesService userRolesService) : Controller
+    public class UserRolesController(IUserRolesService userRolesService, IRolesService rolesService, IUsersService usersService) : Controller
     {
         private readonly IUserRolesService _userRolesService = userRolesService;
+        private readonly IRolesService _rolesService = rolesService;
+        private readonly IUsersService _usersService = usersService;
 
         // GET: UserRolesController/Create
-        public ActionResult Create(int projectId)
+        public async Task<ActionResult> Create(int projectId)
         {
-            ViewBag.ProjectId = projectId;
+            var roleResponse = await _rolesService.GetAllAsync();
+            if (!roleResponse.IsSuccessful)
+            {
+                return NotFound(roleResponse.ErrorMessage);
+            }
 
-            return View();
+            var userResponse = await _usersService.GetAllNotInProjectAsync(projectId);
+            if (!userResponse.IsSuccessful)
+            {
+                return NotFound(userResponse.ErrorMessage);
+            }
+
+            ViewBag.Roles = roleResponse.Data;
+            ViewBag.Users = userResponse.Data;
+
+            return View(new UserRole() { ProjectId = projectId });
         }
 
         // POST: UserRolesController/Create
@@ -40,13 +58,21 @@ namespace DMnDBCS.UI.Controllers
         // GET: UserRolesController/Edit/5
         public async Task<ActionResult> Edit(int userId, int projectId)
         {
+            var roleResponse = await _rolesService.GetAllAsync();
+            if (!roleResponse.IsSuccessful)
+            {
+                return NotFound(roleResponse.ErrorMessage);
+            }
+
             var userroleResponse = await _userRolesService.GetByIdUserAndProjectIdsAsync(userId, projectId);
             if (!userroleResponse.IsSuccessful)
             {
                 return NotFound(userroleResponse.ErrorMessage);
             }
 
-            return View();
+            ViewBag.Roles = roleResponse.Data;
+
+            return View(userroleResponse.Data);
         }
 
         // POST: UserRolesController/Edit/5
@@ -79,7 +105,7 @@ namespace DMnDBCS.UI.Controllers
                 return NotFound(userroleResponse.ErrorMessage);
             }
 
-            return View();
+            return View(userroleResponse.Data);
         }
 
         // POST: UserRolesController/Delete/5

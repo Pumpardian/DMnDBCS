@@ -10,7 +10,7 @@
 <hr />
 <div class="row">
     <div class="col-md-4">
-        <form asp-action="Create">
+        <form asp-action="Create" asp-route-projectId="@Model.ProjectId">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <div class="form-group">
                 <label asp-for="Title" class="control-label"></label>
@@ -56,14 +56,7 @@
 </div>
 
 <div>
-    @if (ViewBag.ProjectId == null)
-    {
-        <a asp-action="Index">Back to List</a>
-    }
-    else
-    {
-        <a asp-action="Details" asp-controller="Projects" asp-route-id="@ViewBag.ProjectId">Back to Project</a>
-    }
+    <a asp-action="Details" asp-controller="Projects" asp-route-id="@Model.ProjectId">Back to Project</a>
 </div>
 
 @section Scripts {

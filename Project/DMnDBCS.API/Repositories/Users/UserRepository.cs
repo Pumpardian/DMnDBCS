@@ -19,10 +19,10 @@ namespace DMnDBCS.API.Repositories.Users
             }, email, password);
         }
 
-        public async Task<bool> CreateAsync(User user, string password)
+        public async Task<bool> CreateAsync(User user)
         {
             const string procedureName = "create_user";
-            return await _connection.CreateDBEntity(procedureName, user.Name, user.Email, password, user.Id);
+            return await _connection.CreateDBEntity(procedureName, user.Name, user.Email, user.Password, user.Id);
         }
 
         public async Task<bool> DeleteAsync(int id)
@@ -43,6 +43,29 @@ namespace DMnDBCS.API.Repositories.Users
             });
         }
 
+        public async Task<IEnumerable<User>> GetAllNotInProject(int projectId)
+        {
+            const string procedureName = "get_users_not_in_project";
+
+            return await _connection.QueryDBEntities(procedureName, reader => new User
+            {
+                Id = reader.GetInt32(0),
+                Name = reader.GetString(1),
+                Email = reader.GetString(2)
+            }, projectId);
+        }
+
+        public async Task<User> GetByEmailAsync(string email)
+        {
+            const string procedureName = "get_user_by_email";
+            return await _connection.QueryDBEntity(procedureName, reader => new User
+            {
+                Id = reader.GetInt32(0),
+                Name = reader.GetString(1),
+                Email = reader.GetString(2)
+            }, email);
+        }
+
         public async Task<User> GetByIdAsync(int id)
         {
             const string procedureName = "get_user";
@@ -54,10 +77,10 @@ namespace DMnDBCS.API.Repositories.Users
             }, id);
         }
 
-        public async Task<bool> UpdateAsync(User user, string? newPassword)
+        public async Task<bool> UpdateAsync(User user)
         {
             const string procedureName = "update_user";
-            return await _connection.UpdateDBEntity(procedureName, user.Id, user.Name, user.Email, newPassword);
+            return await _connection.UpdateDBEntity(procedureName, user.Id, user.Name, user.Email, user.Password);
         }
     }
 }

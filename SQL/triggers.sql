@@ -51,7 +51,7 @@ RETURNS TRIGGER AS $$
 BEGIN
 	INSERT INTO notifications (message, time, user_id, project_id)
 	VALUES ('There are new resource for your disposal in project'||
-	(SELECT name FROM projects WHERE id = NEW.project_id)||
+	(SELECT title FROM projects WHERE id = NEW.project_id)||
 	' of type '||NEW.type,
 	CURRENT_TIMESTAMP, NULL, NEW.project_id);
 	RETURN NEW;
@@ -70,7 +70,7 @@ BEGIN
 		WHEN OLD.type != NEW.type THEN
 			INSERT INTO notifications (message, time, user_id, project_id)
 			VALUES ('The resource in project '||
-			(SELECT name FROM projects WHERE id = NEW.project_id)||
+			(SELECT title FROM projects WHERE id = NEW.project_id)||
 			' of type '||OLD.type||' has been replaced with',
 			CURRENT_TIMESTAMP, NULL, NEW.project_id);
 			
@@ -78,13 +78,19 @@ BEGIN
 			INSERT INTO notifications (message, time, user_id, project_id)
 			VALUES ('The resource of type '||
 			OLD.type||' has been unsassigned from project '||
-			(SELECT name FROM projects WHERE id = OLD.project_id),
-			CURRENT_TIMESTAMP, NULL, NEW.project_id);
+			(SELECT title FROM projects WHERE id = OLD.project_id),
+			CURRENT_TIMESTAMP, NULL, OLD.project_id);
 			
 			INSERT INTO notifications (message, time, user_id, project_id)
 			VALUES ('The resource of type '||
 			OLD.type||' has been assigned to project '||
-			(SELECT name FROM projects WHERE id = NEW.project_id),
+			(SELECT title FROM projects WHERE id = NEW.project_id),
+			CURRENT_TIMESTAMP, NULL, NEW.project_id);
+		
+		ELSE
+			INSERT INTO notifications (message, time, user_id, project_id)
+			VALUES ('The resource of type '||
+			OLD.type||' has been updated ',
 			CURRENT_TIMESTAMP, NULL, NEW.project_id);
 	END CASE;
 	RETURN NEW;
@@ -102,7 +108,7 @@ BEGIN
 	INSERT INTO notifications (message, time, user_id, project_id)
 	VALUES ('The resource of type '||
 	OLD.type||' has been depleted in project '||
-	(SELECT name FROM projects WHERE id = OLD.project_id),
+	(SELECT title FROM projects WHERE id = OLD.project_id),
 	CURRENT_TIMESTAMP, NULL, OLD.project_id);
 	RETURN OLD;
 END; $$ LANGUAGE plpgsql;
@@ -120,7 +126,7 @@ RETURNS TRIGGER AS $$
 BEGIN
 	INSERT INTO notifications (message, time, user_id, project_id)
 	VALUES ('Your role in project '||
-	(SELECT name FROM projects WHERE id = NEW.project_id)||
+	(SELECT title FROM projects WHERE id = NEW.project_id)||
 	' has been set to '||(SELECT name FROM roles WHERE id = NEW.role_id),
 	CURRENT_TIMESTAMP, NEW.user_id, NULL);
 	RETURN NEW;
@@ -137,7 +143,7 @@ RETURNS TRIGGER AS $$
 BEGIN
 	INSERT INTO notifications (message, time, user_id, project_id)
 	VALUES ('You have been unassigned from project '||
-	(SELECT name FROM projects WHERE id = OLD.project_id),
+	(SELECT title FROM projects WHERE id = OLD.project_id),
 	CURRENT_TIMESTAMP, OLD.user_id, NULL);
 	RETURN OLD;
 END; $$ LANGUAGE plpgsql;
@@ -441,7 +447,7 @@ BEGIN
 		ELSE
 			', some fields changed'
 	END,
-	CURRENT_TIMESTAMP, NEW.author_id);
+	CURRENT_TIMESTAMP, NEW.id);
 	RETURN NEW;
 END; $$ LANGUAGE plpgsql;
 
@@ -458,7 +464,7 @@ BEGIN
 	VALUES ('Deleted user account with id '||OLD.id||
 	', name '||OLD.name||
 	', email '||OLD.email,
-	CURRENT_TIMESTAMP, OLD.id);
+	CURRENT_TIMESTAMP, NULL);
 	RETURN OLD;
 END; $$ LANGUAGE plpgsql;
 
@@ -509,7 +515,7 @@ BEGIN
 		ELSE
 			', some fields changed'
 	END,
-	CURRENT_TIMESTAMP, NEW.author_id);
+	CURRENT_TIMESTAMP, NEW.user_id);
 	RETURN NEW;
 END; $$ LANGUAGE plpgsql;
 
@@ -545,7 +551,7 @@ BEGIN
 	INSERT INTO logs (action, date, user_id)
 	VALUES ('Created project resources with id '||NEW.id||
 	' of type '||NEW.type||
-	' in project '||(SELECT name FROM projects WHERE id = NEW.project_id),
+	' in project '||(SELECT title FROM projects WHERE id = NEW.project_id),
 	CURRENT_TIMESTAMP, NULL);
 	RETURN NEW;
 END; $$ LANGUAGE plpgsql;
@@ -567,8 +573,11 @@ BEGIN
 			' to '||NEW.type
 			
 		WHEN OLD.project_id != NEW.project_id THEN
-		', changed project from '||(SELECT name FROM projects WHERE id = OLD.project_id)||
-		' to '||(SELECT name FROM projects WHERE id = NEW.project_id)
+		', changed project from '||(SELECT title FROM projects WHERE id = OLD.project_id)||
+		' to '||(SELECT title FROM projects WHERE id = NEW.project_id)
+		
+		ELSE
+			', some fields changed'
 	END,
 	CURRENT_TIMESTAMP, NULL);
 	RETURN NEW;
@@ -586,7 +595,7 @@ BEGIN
 	INSERT INTO logs (action, date, user_id)
 	VALUES ('Deleted project resources with id '||OLD.id||
 	' of type '||OLD.type||
-	' in project '||(SELECT name FROM projects WHERE id = OLD.project_id),
+	' in project '||(SELECT title FROM projects WHERE id = OLD.project_id),
 	CURRENT_TIMESTAMP, NULL);
 	RETURN OLD;
 END; $$ LANGUAGE plpgsql;

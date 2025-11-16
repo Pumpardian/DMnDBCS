@@ -15,6 +15,8 @@ builder.Services.AddEndpointsApiExplorer();
 
 var app = builder.Build();
 
+app.UseStaticFiles();
+
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
@@ -27,7 +29,9 @@ app.MapProjectResourceEndpoints();
 app.MapTaskEndpoints();
 app.MapTaskCommentEndpoints();
 app.MapUserRoleEndpoints();
+app.MapUserProfileEndpoints();
 app.MapTaskStatusEndpoints();
+app.MapRoleEndpoints();
 
 app.MapAuthEndpoints();
 

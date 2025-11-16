@@ -23,7 +23,7 @@ namespace DMnDBCS.API.Repositories.UserProfiles
                 Phone = reader.GetString(3),
                 Address = reader.GetString(4),
                 DateOfBirth = DateOnly.FromDateTime(reader.GetDateTime(5)),
-                ProfilePicture = reader.GetString(6)
+                ProfilePicture = reader.IsDBNull(6) ? null : reader.GetString(6)
             }, id);
         }
 

@@ -18,4 +18,8 @@
     <ProjectReference Include="..\DMnDBCS.Domain\DMnDBCS.Domain.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="wwwroot\Images\" />
+  </ItemGroup>
+
 </Project>

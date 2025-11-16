@@ -33,7 +33,7 @@ public static class UserRoleEndpoints
         {
             try
             {
-                var data = await repository.GetByIdUserAndProjectIdsAsync(userId, projectId);
+                var data = await repository.GetByUserAndProjectIdsAsync(userId, projectId);
                 return TypedResults.Ok(data);
             }
             catch (Exception ex)

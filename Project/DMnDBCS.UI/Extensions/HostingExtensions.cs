@@ -3,10 +3,13 @@ using DMnDBCS.UI.Services.Jwt;
 using DMnDBCS.UI.Services.Logs;
 using DMnDBCS.UI.Services.ProjectResources;
 using DMnDBCS.UI.Services.Projects;
+using DMnDBCS.UI.Services.Roles;
 using DMnDBCS.UI.Services.TaskComments;
 using DMnDBCS.UI.Services.Tasks;
 using DMnDBCS.UI.Services.TaskStatuses;
+using DMnDBCS.UI.Services.UserProfiles;
 using DMnDBCS.UI.Services.UserRoles;
+using DMnDBCS.UI.Services.Users;
 
 namespace DMnDBCS.UI.Extensions
 {
@@ -30,6 +33,12 @@ namespace DMnDBCS.UI.Extensions
                 .AddHttpClient<IUserRolesService, ApiUserRolesService>(opt => opt.BaseAddress = new Uri(api + "userroles"));
             webapplicationBuilder.Services
                 .AddHttpClient<ITaskStatusesService, ApiTaskStatusesService>(opt => opt.BaseAddress = new Uri(api + "taskstatuses"));
+            webapplicationBuilder.Services
+                .AddHttpClient<IUserProfilesService, ApiUserProfilesService>(opt => opt.BaseAddress = new Uri(api + "userprofiles"));
+            webapplicationBuilder.Services
+                .AddHttpClient<IUsersService, ApiUsersService>(opt => opt.BaseAddress = new Uri(api + "users"));
+            webapplicationBuilder.Services
+                .AddHttpClient<IRolesService, ApiRolesService>(opt => opt.BaseAddress = new Uri(api + "roles"));
 
             webapplicationBuilder.Services.AddHttpClient();
         }

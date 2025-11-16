@@ -22,7 +22,7 @@ namespace DMnDBCS.UI.Controllers
                 return NotFound(response.ErrorMessage);
             }
 
-            return View();
+            return View(response.Data);
         }
 
         // GET: TasksController/Details/5
@@ -47,10 +47,8 @@ namespace DMnDBCS.UI.Controllers
         }
 
         // GET: TasksController/Create
-        public async Task<ActionResult> Create(int? projectId = null)
+        public async Task<ActionResult> Create(int projectId)
         {
-            ViewBag.ProjectId = projectId;
-
             var statusesResponse = await _taskStatusesService.GetAllAsync();
             if (!statusesResponse.IsSuccessful)
             {
@@ -58,7 +56,7 @@ namespace DMnDBCS.UI.Controllers
             }
             ViewBag.Statuses = statusesResponse.Data;
 
-            return View();
+            return View(new Domain.Entities.Task() { ProjectId = projectId });
         }
 
         // POST: TasksController/Create
@@ -91,11 +89,6 @@ namespace DMnDBCS.UI.Controllers
                 }
 
                 await _taskService.CreateAsync(task);
-
-                if (ViewBag.ProjectId == null)
-                {
-                    return RedirectToAction("Index", "Tasks");
-                }
 
                 return RedirectToAction("Details", "Projects", new { id = task.ProjectId });
             }
@@ -186,13 +179,13 @@ namespace DMnDBCS.UI.Controllers
 
         // POST: TasksController/Delete/5
         [HttpPost]
-        public async Task<ActionResult> Delete(int id, IFormCollection collection)
+        public async Task<ActionResult> Delete(int id, int projectId)
         {
             try
             {
                 await _taskService.DeleteAsync(id);
 
-                return RedirectToAction("Index", "Tasks");
+                return RedirectToAction("Details", "Projects", new { id = projectId });
             }
             catch
             {

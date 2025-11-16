@@ -2,7 +2,6 @@
 
 @{
     ViewData["Title"] = "Delete TaskComment";
-    ViewBag.TaskId = Model.TaskId;
 }
 
 <h1>Delete</h1>
@@ -38,8 +37,8 @@
         </dd>
     </dl>
     
-    <form asp-action="Delete">
+    <form asp-action="Delete" asp-route-taskId="@Model.TaskId">
         <input type="submit" value="Delete" class="btn btn-danger" /> |
-        <a asp-action="Details" asp-controller="Tasks" asp-route-id="@ViewBag.TaskId">Back to Task</a>
+        <a asp-action="Details" asp-controller="Tasks" asp-route-id="@Model.TaskId">Back to Task</a>
     </form>
 </div>

@@ -2,7 +2,6 @@
 
 @{
     ViewData["Title"] = "Delete UserRole";
-    ViewBag.ProjectId = Model.ProjectId;
 }
 
 <h1>Delete</h1>
@@ -32,8 +31,8 @@
         </dd>
     </dl>
     
-    <form asp-action="Delete">
+    <form asp-action="Delete" asp-route-userId="@Model.UserId" asp-route-projectId="@Model.ProjectId">
         <input type="submit" value="Delete" class="btn btn-danger" /> |
-        <a asp-action="Details" asp-controller="Projects" asp-route-id="@ViewBag.ProjectId">Back to Project</a>
+        <a asp-action="Details" asp-controller="Projects" asp-route-id="@Model.ProjectId">Back to Project</a>
     </form>
 </div>

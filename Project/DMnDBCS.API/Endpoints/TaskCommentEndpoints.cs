@@ -69,7 +69,7 @@ public static class TaskCommentEndpoints
             try
             {
                 var data = await repository.CreateAsync(model);
-                return TypedResults.Created($"/{model.Id}", model.Id);
+                return data ? TypedResults.Created($"/api/taskcomments/{model.Id}", model) : TypedResults.BadRequest();
             }
             catch (Exception ex)
             {
