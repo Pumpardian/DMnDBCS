@@ -11,5 +11,6 @@
         public DateOnly? CompletionDate { get; set; }
         public int ProjectId { get; set; }
         public int ExecutorId { get; set; }
+        public bool? CanDelete { get; set; }
     }
 }

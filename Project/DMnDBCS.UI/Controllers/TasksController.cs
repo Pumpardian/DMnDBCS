@@ -2,6 +2,7 @@
 using DMnDBCS.UI.Services.TaskComments;
 using DMnDBCS.UI.Services.Tasks;
 using DMnDBCS.UI.Services.TaskStatuses;
+using DMnDBCS.UI.Services.UserRoles;
 using DMnDBCS.UI.Services.Users;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.CodeAnalysis;
@@ -9,35 +10,63 @@ using Microsoft.CodeAnalysis;
 namespace DMnDBCS.UI.Controllers
 {
     public class TasksController(ITasksService tasksService, ITaskCommentsService taskCommentsService, ITaskStatusesService taskStatusesService,
-        IJwtService jwtService, IUsersService usersService) : Controller
+        IJwtService jwtService, IUsersService usersService, IUserRolesService userRolesService) : Controller
     {
         private readonly ITasksService _taskService = tasksService;
         private readonly ITaskCommentsService _taskCommentsService = taskCommentsService;
         private readonly ITaskStatusesService _taskStatusesService = taskStatusesService;
         private readonly IUsersService _usersService = usersService;
+        private readonly IUserRolesService _userRolesService = userRolesService;
         private readonly IJwtService _jwtService = jwtService;
 
         // GET: TasksController
         public async Task<ActionResult> Index()
         {
-            var response = await _taskService.GetTasksForExecutorAsync(int.Parse(_jwtService.GetUserId()!));
+            if (!int.TryParse(_jwtService.GetUserId(), out int loggedUserId))
+            {
+                return Unauthorized();
+            }
+
+            var response = await _taskService.GetTasksForExecutorAsync(loggedUserId);
             if (!response.IsSuccessful)
             {
                 return NotFound(response.ErrorMessage);
+            }
+
+            foreach (var t in response.Data!)
+            {
+                var userroleResponse = await _userRolesService.GetByIdUserAndProjectIdsAsync(loggedUserId, t.ProjectId);
+                t.CanDelete = userroleResponse.Data!.RoleName == "Admin" || userroleResponse.Data.RoleName == "Project Manager";
             }
 
             return View(response.Data);
         }
 
         // GET: TasksController/Details/5
-        public async Task<ActionResult> Details(int id, bool isFromProject = false)
+        public async Task<ActionResult> Details(int id, bool? isFromProject = null)
         {
-            ViewBag.FromProject = isFromProject;
+            if (!int.TryParse(_jwtService.GetUserId(), out int loggedUserId))
+            {
+                return Unauthorized();
+            }
+
+            if (isFromProject != null)
+            {
+                _jwtService.SetFromProject(isFromProject.Value);
+            }
+
+            TempData["FromProject"] = _jwtService.GetFromProject();
 
             var taskResponse = await _taskService.GetByIdAsync(id);
             if (!taskResponse.IsSuccessful)
             {
                 return NotFound(taskResponse.ErrorMessage);
+            }
+
+            var userroleResponse = await _userRolesService.GetByIdUserAndProjectIdsAsync(loggedUserId, taskResponse.Data!.ProjectId);
+            if (!userroleResponse.IsSuccessful || userroleResponse.Data == null)
+            {
+                return Unauthorized();
             }
 
             var commentResponse = await _taskCommentsService.GetTaskCommentsByTaskIdAsync(id);
@@ -53,6 +82,17 @@ namespace DMnDBCS.UI.Controllers
         // GET: TasksController/Create
         public async Task<ActionResult> Create(int projectId)
         {
+            if (!int.TryParse(_jwtService.GetUserId(), out int loggedUserId))
+            {
+                return Unauthorized();
+            }
+
+            var userroleResponse = await _userRolesService.GetByIdUserAndProjectIdsAsync(loggedUserId, projectId);
+            if (!userroleResponse.IsSuccessful || userroleResponse.Data == null || (userroleResponse.Data.RoleName != "Admin" && userroleResponse.Data.RoleName != "Project Manager"))
+            {
+                return Unauthorized();
+            }
+
             var usersResponse = await _usersService.GetAllInProjectAsync(projectId);
             if (!usersResponse.IsSuccessful)
             {
@@ -110,15 +150,33 @@ namespace DMnDBCS.UI.Controllers
         }
 
         // GET: TasksController/Edit/5
-        public async Task<ActionResult> Edit(int id, bool isFromProject = false)
+        public async Task<ActionResult> Edit(int id, bool? isFromProject = null)
         {
-            ViewBag.FromProject = isFromProject;
+            if (!int.TryParse(_jwtService.GetUserId(), out int loggedUserId))
+            {
+                return Unauthorized();
+            }
 
             var response = await _taskService.GetByIdAsync(id);
             if (!response.IsSuccessful || response.Data == null)
             {
                 return NotFound(response.ErrorMessage);
             }
+
+            var userroleResponse = await _userRolesService.GetByIdUserAndProjectIdsAsync(loggedUserId, response.Data.ProjectId);
+            if (!userroleResponse.IsSuccessful || userroleResponse.Data == null ||
+                (userroleResponse.Data.RoleName != "Admin" && userroleResponse.Data.RoleName != "Project Manager" &&
+                response.Data.ExecutorId != loggedUserId))
+            {
+                return Unauthorized();
+            }
+
+            if (isFromProject != null)
+            {
+                _jwtService.SetFromProject(isFromProject.Value);
+            }
+
+            TempData["FromProject"] = _jwtService.GetFromProject();
 
             var usersResponse = await _usersService.GetAllInProjectAsync(response.Data.ProjectId);
             if (!usersResponse.IsSuccessful)
@@ -182,15 +240,31 @@ namespace DMnDBCS.UI.Controllers
         }
 
         // GET: TasksController/Delete/5
-        public async Task<ActionResult> Delete(int id, bool isFromProject = false)
+        public async Task<ActionResult> Delete(int id, bool? isFromProject = null)
         {
-            ViewBag.FromProject = isFromProject;
+            if (!int.TryParse(_jwtService.GetUserId(), out int loggedUserId))
+            {
+                return Unauthorized();
+            }
 
             var response = await _taskService.GetByIdAsync(id);
             if (!response.IsSuccessful || response.Data == null)
             {
                 return NotFound(response.ErrorMessage);
             }
+
+            var userroleResponse = await _userRolesService.GetByIdUserAndProjectIdsAsync(loggedUserId, response.Data.ProjectId);
+            if (!userroleResponse.IsSuccessful || userroleResponse.Data == null || (userroleResponse.Data.RoleName != "Admin" && userroleResponse.Data.RoleName != "Project Manager"))
+            {
+                return Unauthorized();
+            }
+
+            if (isFromProject != null)
+            {
+                _jwtService.SetFromProject(isFromProject.Value);
+            }
+
+            TempData["FromProject"] = _jwtService.GetFromProject();
 
             return View(response.Data);
         }

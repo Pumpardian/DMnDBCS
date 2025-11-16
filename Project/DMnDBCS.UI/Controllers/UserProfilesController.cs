@@ -3,7 +3,6 @@ using DMnDBCS.UI.Services.Jwt;
 using DMnDBCS.UI.Services.UserProfiles;
 using DMnDBCS.UI.Services.Users;
 using Microsoft.AspNetCore.Mvc;
-using System.Net.Http;
 using System.Text.RegularExpressions;
 
 namespace DMnDBCS.UI.Controllers
@@ -19,6 +18,11 @@ namespace DMnDBCS.UI.Controllers
         // GET: UserProfilesController/Details/5
         public async Task<ActionResult> Details(int id)
         {
+            if (!int.TryParse(_jwtService.GetUserId(), out int loggedUserId))
+            {
+                return Unauthorized();
+            }
+
             var userResponse = await _usersService.GetByIdAsync(id);
             if (!userResponse.IsSuccessful || userResponse.Data == null)
             {
@@ -31,7 +35,7 @@ namespace DMnDBCS.UI.Controllers
                 return NotFound(profileResponse.ErrorMessage);
             }
 
-            if (int.TryParse(_jwtService.GetUserId(), out int userId) && userId == id)
+            if (loggedUserId == id)
             {
                 ViewBag.CanEdit = true;
             }
@@ -53,6 +57,11 @@ namespace DMnDBCS.UI.Controllers
         // GET: UserProfilesController/Edit/5
         public async Task<ActionResult> Edit(int id)
         {
+            if (!int.TryParse(_jwtService.GetUserId(), out int loggedUserId) || loggedUserId != id)
+            {
+                return Unauthorized();
+            }
+
             var userResponse = await _usersService.GetByIdAsync(id);
             if (!userResponse.IsSuccessful || userResponse.Data == null)
             {
@@ -65,11 +74,6 @@ namespace DMnDBCS.UI.Controllers
                 return NotFound(profileResponse.ErrorMessage);
             }
 
-            if (int.TryParse(_jwtService.GetUserId(), out int userId) && userId == id)
-            {
-                ViewBag.CanEdit = true;
-            }
-
             var info = new UserInfoViewModel()
             {
                 Id = id,
@@ -78,6 +82,7 @@ namespace DMnDBCS.UI.Controllers
                 Phone = profileResponse.Data.Phone,
                 Address = profileResponse.Data.Address,
                 DateOfBirth = profileResponse.Data.DateOfBirth,
+                ProfilePicture = profileResponse.Data.ProfilePicture
             };
 
             return View(info);

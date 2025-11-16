@@ -39,8 +39,11 @@
                     <div class="card-footer bg-transparent">
                         <div class="btn-group w-100" role="group">
                             @Html.ActionLink("Details", "Details", new { id = item.Id }, new { @class = "btn btn-outline-primary btn-sm" })
-                            @Html.ActionLink("Edit", "Edit", new { id = item.Id }, new { @class = "btn btn-outline-secondary btn-sm" })
-                            @Html.ActionLink("Delete", "Delete", new { id = item.Id }, new { @class = "btn btn-outline-danger btn-sm" })
+                            @if (item.UserRole != null && item.UserRole == "Admin")
+                            {
+                                @Html.ActionLink("Edit", "Edit", new { id = item.Id }, new { @class = "btn btn-outline-secondary btn-sm" })
+                                @Html.ActionLink("Delete", "Delete", new { id = item.Id }, new { @class = "btn btn-outline-danger btn-sm" })
+                            }
                         </div>
                     </div>
                 </div>

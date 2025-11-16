@@ -23,7 +23,10 @@
         <!-- Project Resources -->
         <div col-lg-8>
             <h4 class="mb-3">Resources</h4>
-            @Html.ActionLink("Create", "Create", "ProjectResources", new { projectId = Model.Id }, new { @class = "btn btn-outline-primary btn-sm mb-2" })
+            @if(Model.UserRole != null && (Model.UserRole == "Admin" || Model.UserRole == "Project Manager"))
+            {
+                @Html.ActionLink("Create", "Create", "ProjectResources", new { projectId = Model.Id }, new { @class = "btn btn-outline-primary btn-sm mb-2" })
+            }
             <div class="row">
                 @if (ViewBag.Resources != null)
                 {
@@ -40,8 +43,11 @@
                                 </div>
                                 <div class="card-footer bg-transparent">
                                     <div class="btn-group w-100" role="group">
-                                        @Html.ActionLink("Edit", "Edit", "ProjectResources", new { id = item.Id }, new { @class = "btn btn-outline-secondary btn-sm" })
-                                        @Html.ActionLink("Delete", "Delete", "ProjectResources", new { id = item.Id }, new { @class = "btn btn-outline-danger btn-sm" })
+                                        @if (Model.UserRole != null && (Model.UserRole == "Admin" || Model.UserRole == "Project Manager"))
+                                        {
+                                            @Html.ActionLink("Edit", "Edit", "ProjectResources", new { id = item.Id }, new { @class = "btn btn-outline-secondary btn-sm" })
+                                            @Html.ActionLink("Delete", "Delete", "ProjectResources", new { id = item.Id }, new { @class = "btn btn-outline-danger btn-sm" })
+                                        }
                                     </div>
                                 </div>
                             </div>
@@ -64,7 +70,10 @@
             <div class="col-lg-8">
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h4 class="mb-0">Tasks</h4>
-                    @Html.ActionLink("Create", "Create", "Tasks", new { projectId = Model.Id }, new { @class = "btn btn-primary btn-sm" })
+                    @if(Model.UserRole != null && (Model.UserRole == "Admin" || Model.UserRole == "Project Manager"))
+                    {
+                        @Html.ActionLink("Create", "Create", "Tasks", new { projectId = Model.Id }, new { @class = "btn btn-primary btn-sm" })
+                    }
                 </div>
 
                 <div class="row">
@@ -100,9 +109,18 @@
                                     </div>
                                     <div class="card-footer bg-transparent">
                                         <div class="btn-group w-100" role="group">
-                                            @Html.ActionLink("Details", "Details", "Tasks", new { id = item.Id, isFromProject = true }, new { @class = "btn btn-outline-primary btn-sm" })
-                                            @Html.ActionLink("Edit", "Edit", "Tasks", new { id = item.Id, isFromProject = true }, new { @class = "btn btn-outline-secondary btn-sm" })
-                                            @Html.ActionLink("Delete", "Delete", "Tasks", new { id = item.Id, isFromProject = true }, new { @class = "btn btn-outline-danger btn-sm" })
+                                            @if (Model.UserRole != null)
+                                            {
+                                                @Html.ActionLink("Details", "Details", "Tasks", new { id = item.Id, isFromProject = true }, new { @class = "btn btn-outline-primary btn-sm" })
+                                            }
+                                            @if (Model.UserRole != null && (Model.UserRole == "Admin" || Model.UserRole == "Project Manager") || item.ExecutorId == ViewBag.UserId)
+                                            {
+                                                @Html.ActionLink("Edit", "Edit", "Tasks", new { id = item.Id, isFromProject = true }, new { @class = "btn btn-outline-secondary btn-sm" })
+                                            }
+                                            @if (Model.UserRole != null && (Model.UserRole == "Admin" || Model.UserRole == "Project Manager"))
+                                            {
+                                                @Html.ActionLink("Delete", "Delete", "Tasks", new { id = item.Id, isFromProject = true }, new { @class = "btn btn-outline-danger btn-sm" })
+                                            }
                                         </div>
                                     </div>
                                 </div>
@@ -150,12 +168,18 @@
                                             <li>
                                                 @Html.ActionLink("View Profile", "Details", "UserProfiles", new { id = item.UserId }, new { @class = "dropdown-item" })
                                             </li>
-                                            <li>
-                                                @Html.ActionLink("Edit", "Edit", "UserRoles", new { userId = item.UserId, projectId = item.ProjectId }, new { @class = "dropdown-item" })
-                                            </li>
-                                            <li>
-                                                @Html.ActionLink("Remove", "Delete", "UserRoles", new { userId = item.UserId, projectId = item.ProjectId }, new { @class = "dropdown-item" })
-                                            </li>
+                                            @if (Model.UserRole != null && Model.UserRole == "Admin")
+                                            {
+                                                <li>
+                                                    @Html.ActionLink("Edit", "Edit", "UserRoles", new { userId = item.UserId, projectId = item.ProjectId }, new { @class = "dropdown-item" })
+                                                </li>
+                                            }
+                                            @if (Model.UserRole != null && Model.UserRole == "Admin" || item.UserId == ViewBag.UserId)
+                                            {
+                                                <li>
+                                                    @Html.ActionLink("Remove", "Delete", "UserRoles", new { userId = item.UserId, projectId = item.ProjectId }, new { @class = "dropdown-item" })
+                                                </li>
+                                            }
                                         </ul>
                                     </div>
                                 </div>
@@ -169,9 +193,12 @@
                             <p>No members assigned to this project</p>
                         </div>
                     }
-                    <div class="card-footer bg-light">
-                        @Html.ActionLink("Add", "Create", "UserRoles", new { projectId = Model.Id }, new { @class = "btn btn-outline-primary btn-sm" })
-                    </div>
+                    @if(Model.UserRole != null && (Model.UserRole == "Admin" || Model.UserRole == "Project Manager"))
+                    {
+                        <div class="card-footer bg-light">
+                            @Html.ActionLink("Add", "Create", "UserRoles", new { projectId = Model.Id }, new { @class = "btn btn-outline-primary btn-sm" })
+                        </div>
+                    }
                 </div>
             </div>
         </div>

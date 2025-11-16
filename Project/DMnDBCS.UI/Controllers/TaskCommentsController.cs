@@ -1,18 +1,40 @@
 ﻿using DMnDBCS.UI.Services.Jwt;
 using DMnDBCS.UI.Services.TaskComments;
-using DMnDBCS.UI.Services.Users;
+using DMnDBCS.UI.Services.Tasks;
+using DMnDBCS.UI.Services.UserRoles;
 using Microsoft.AspNetCore.Mvc;
+using System.Threading.Tasks;
 
 namespace DMnDBCS.UI.Controllers
 {
-    public class TaskCommentsController(ITaskCommentsService taskCommentsService, IJwtService jwtService) : Controller
+    public class TaskCommentsController(ITaskCommentsService taskCommentsService, ITasksService tasksService,
+        IUserRolesService userRolesService, IJwtService jwtService) : Controller
     {
         private readonly ITaskCommentsService _taskCommentsService = taskCommentsService;
+        private readonly ITasksService _tasksService = tasksService;
+        private readonly IUserRolesService _userRolesService = userRolesService;
         private readonly IJwtService _jwtService = jwtService;
 
         // GET: TaskCommentsController/Create
-        public ActionResult Create(int taskId)
+        public async Task<ActionResult> Create(int taskId)
         {
+            if (!int.TryParse(_jwtService.GetUserId(), out int loggedUserId))
+            {
+                return Unauthorized();
+            }
+
+            var taskResponse = await _tasksService.GetByIdAsync(taskId);
+            if (!taskResponse.IsSuccessful)
+            {
+                return NotFound(taskResponse.ErrorMessage);
+            }
+
+            var userroleResponse = await _userRolesService.GetByIdUserAndProjectIdsAsync(loggedUserId, taskResponse.Data!.ProjectId);
+            if (!userroleResponse.IsSuccessful || userroleResponse.Data == null)
+            {
+                return Unauthorized();
+            }
+
             return View(new TaskComment() { TaskId = taskId, AuthorId = int.Parse(_jwtService.GetUserId()!) });
         }
 
@@ -54,10 +76,20 @@ namespace DMnDBCS.UI.Controllers
         // GET: TaskCommentsController/Edit/5
         public async Task<ActionResult> Edit(int id)
         {
+            if (!int.TryParse(_jwtService.GetUserId(), out int loggedUserId))
+            {
+                return Unauthorized();
+            }
+
             var response = await _taskCommentsService.GetByIdAsync(id);
             if (!response.IsSuccessful || response.Data == null)
             {
                 return NotFound(response.ErrorMessage);
+            }
+
+            if (response.Data.AuthorId != loggedUserId)
+            {
+                return Unauthorized();
             }
 
             return View(response.Data);
@@ -99,10 +131,20 @@ namespace DMnDBCS.UI.Controllers
         // GET: TaskCommentsController/Delete/5
         public async Task<ActionResult> Delete(int id)
         {
+            if (!int.TryParse(_jwtService.GetUserId(), out int loggedUserId))
+            {
+                return Unauthorized();
+            }
+
             var response = await _taskCommentsService.GetByIdAsync(id);
             if (!response.IsSuccessful || response.Data == null)
             {
                 return NotFound(response.ErrorMessage);
+            }
+
+            if (response.Data.AuthorId != loggedUserId)
+            {
+                return Unauthorized();
             }
 
             return View(response.Data);

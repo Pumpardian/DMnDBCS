@@ -2,7 +2,6 @@
 
 @{
     ViewData["Title"] = "Edit TaskComment";
-    ViewBag.TaskId = Model.TaskId;
 }
 
 <h1>Edit</h1>
@@ -27,7 +26,7 @@
 </div>
 
 <div>
-    <a asp-action="Details" asp-controller="Tasks" asp-route-id="@ViewBag.TaskId">Back to Task</a>
+    <a asp-action="Details" asp-controller="Tasks" asp-route-id="@Model.TaskId">Back to Task</a>
 </div>
 
 @section Scripts {

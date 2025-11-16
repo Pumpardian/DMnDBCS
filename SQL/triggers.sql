@@ -43,6 +43,64 @@ EXECUTE FUNCTION completion_dates_automation();
 
 --NOTIFICATIONS
 
+----TASKCOMMENTS
+
+------INSERT
+CREATE OR REPLACE FUNCTION notify_taskcomments_insert()
+RETURNS TRIGGER AS $$
+BEGIN
+	INSERT INTO notifications (message, time, user_id, project_id)
+	VALUES ('There are new comment for your task '||
+	(SELECT title FROM tasks WHERE id = NEW.task_id)||
+	' from user '||
+	(SELECT name FROM users WHERE id = NEW.author_id),
+	CURRENT_TIMESTAMP, (SELECT executor_id FROM tasks WHERE id = NEW.task_id), NULL);
+	RETURN NEW;
+END; $$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE TRIGGER trigger_notify_taskcomments_insert
+AFTER INSERT ON taskcomments
+FOR EACH ROW
+EXECUTE FUNCTION notify_taskcomments_insert();
+
+------UPDATE
+CREATE OR REPLACE FUNCTION notify_taskcomments_update()
+RETURNS TRIGGER AS $$
+BEGIN
+	INSERT INTO notifications (message, time, user_id, project_id)
+	VALUES ('A comment for your task '||
+	(SELECT title FROM tasks WHERE id = NEW.task_id)||
+	' from user '||
+	(SELECT name FROM users WHERE id = NEW.author_id)||
+	' was updated',
+	CURRENT_TIMESTAMP, (SELECT executor_id FROM tasks WHERE id = NEW.task_id), NULL);
+	RETURN NEW;
+END; $$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE TRIGGER trigger_notify_taskcomments_update
+AFTER UPDATE ON taskcomments
+FOR EACH ROW
+EXECUTE FUNCTION notify_taskcomments_update();
+
+------DELETE
+CREATE OR REPLACE FUNCTION notify_taskcomments_delete()
+RETURNS TRIGGER AS $$
+BEGIN
+	INSERT INTO notifications (message, time, user_id, project_id)
+	VALUES ('A comment for your task '||
+	(SELECT title FROM tasks WHERE id = OLD.task_id)||
+	' from user '||
+	(SELECT name FROM users WHERE id = OLD.author_id)||
+	' was deleted',
+	CURRENT_TIMESTAMP, (SELECT executor_id FROM tasks WHERE id = OLD.task_id), NULL);
+	RETURN OLD;
+END; $$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE TRIGGER trigger_notify_taskcomments_delete
+AFTER DELETE ON taskcomments
+FOR EACH ROW
+EXECUTE FUNCTION notify_taskcomments_delete();
+
 ----PROJECTRESOURCES
 
 ------INSERT
@@ -187,7 +245,7 @@ BEGIN
 END; $$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE TRIGGER trigger_notify_task_update
-AFTER INSERT ON tasks
+AFTER UPDATE ON tasks
 FOR EACH ROW
 EXECUTE FUNCTION notify_task_update();
 

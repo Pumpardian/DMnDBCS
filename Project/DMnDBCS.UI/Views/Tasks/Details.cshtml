@@ -53,8 +53,11 @@
                                 </div>
                                 <div class="card-footer bg-transparent">
                                     <div class="btn-group w-100" role="group">
+                                    @if (ViewBag.UserId == item.AuthorId)
+                                    {
                                         @Html.ActionLink("Edit", "Edit", "TaskComments", new { id = item.Id }, new { @class = "btn btn-outline-secondary btn-sm" })
                                         @Html.ActionLink("Delete", "Delete", "TaskComments", new { id = item.Id }, new { @class = "btn btn-outline-danger btn-sm" })
+                                    }
                                     </div>
                                 </div>
                             </div>
@@ -70,7 +73,7 @@
     </div>
 </div>
 <div>
-    @if (ViewBag.FromProject)
+    @if (TempData["FromProject"] != null && (bool)TempData["FromProject"]!)
     {
         <a asp-action="Details" asp-controller="Projects" asp-route-id="@Model.ProjectId">Back to Project</a>
     }

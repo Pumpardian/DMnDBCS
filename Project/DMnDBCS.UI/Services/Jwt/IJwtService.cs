@@ -5,5 +5,7 @@
         string? GetUserId();
         string? GetUsername();
         string? GetUserEmail();
+        bool GetFromProject();
+        void SetFromProject(bool data);
     }
 }

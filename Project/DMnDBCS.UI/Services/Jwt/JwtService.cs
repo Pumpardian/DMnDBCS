@@ -30,5 +30,21 @@
             }
             return null;
         }
+
+        public bool GetFromProject()
+        {
+            string? data = _httpContextAccessor.HttpContext!.Session.GetString("FromProject");
+            if (!string.IsNullOrEmpty(data))
+            {
+                return _httpContextAccessor.HttpContext!.Session.GetString("FromProject") == bool.TrueString;
+            }
+
+            return false;
+        }
+
+        public void SetFromProject(bool data)
+        {
+            _httpContextAccessor.HttpContext!.Session.SetString("FromProject", data.ToString());
+        }
     }
 }

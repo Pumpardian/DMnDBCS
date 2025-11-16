@@ -1,29 +1,46 @@
 ﻿using DMnDBCS.UI.Services.Auth;
+using DMnDBCS.UI.Services.Jwt;
 using DMnDBCS.UI.Services.ProjectResources;
 using DMnDBCS.UI.Services.Projects;
+using DMnDBCS.UI.Services.Roles;
 using DMnDBCS.UI.Services.Tasks;
 using DMnDBCS.UI.Services.UserRoles;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace DMnDBCS.UI.Controllers
 {
-    public class ProjectsController(IProjectsService projectsService, ITasksService tasksService,
-        IProjectResourcesService projectResourcesService, IUserRolesService userRolesService, ITokenAccessor tokenAccessor) : Controller
+    public class ProjectsController(IProjectsService projectsService, ITasksService tasksService, IProjectResourcesService projectResourcesService,
+        IUserRolesService userRolesService, IRolesService rolesService, ITokenAccessor tokenAccessor, IJwtService jwtService) : Controller
     {
         private readonly IProjectsService _projectsService = projectsService;
         private readonly ITasksService _tasksService = tasksService;
         private readonly IProjectResourcesService _projectResourcesService = projectResourcesService;
         private readonly IUserRolesService _userRolesService = userRolesService;
+        private readonly IRolesService _rolesService = rolesService;
         private readonly ITokenAccessor _tokenAccessor = tokenAccessor;
+        private readonly IJwtService _jwtService = jwtService;
 
         // GET: ProjectsController
         public async Task<ActionResult> Index()
         {
+            if (!int.TryParse(_jwtService.GetUserId(), out int loggedUserId))
+            {
+                return Unauthorized();
+            }
+
             var response = await _projectsService.GetProjectListAsync();
             if (!response.IsSuccessful)
             {
                 return NotFound(response.ErrorMessage);
+            }
+            
+            foreach (var p in response.Data!)
+            {
+                var userroleResponse = await _userRolesService.GetByIdUserAndProjectIdsAsync(loggedUserId, p.Id);
+                if (userroleResponse.IsSuccessful && userroleResponse.Data != null)
+                {
+                    p.UserRole = userroleResponse.Data.RoleName;
+                }
             }
 
             return View(response.Data);
@@ -32,10 +49,21 @@ namespace DMnDBCS.UI.Controllers
         // GET: ProjectsController/Details/5
         public async Task<ActionResult> Details(int id)
         {
+            if (!int.TryParse(_jwtService.GetUserId(), out int loggedUserId))
+            {
+                return Unauthorized();
+            }
+
             var projectResponse = await _projectsService.GetByIdAsync(id);
             if (!projectResponse.IsSuccessful)
             {
                 return NotFound(projectResponse.ErrorMessage);
+            }
+
+            var userroleResponse = await _userRolesService.GetByIdUserAndProjectIdsAsync(loggedUserId, id);
+            if (userroleResponse.IsSuccessful && userroleResponse.Data != null)
+            {
+                projectResponse.Data!.UserRole = userroleResponse.Data.RoleName;
             }
 
             var taskResponse = await _tasksService.GetTasksForProjectAsync(id);
@@ -97,7 +125,24 @@ namespace DMnDBCS.UI.Controllers
                     return View(project);
                 }
 
+                if (!int.TryParse(_jwtService.GetUserId(), out int loggedUserId))
+                {
+                    return Unauthorized();
+                }
+
+                var rolesResponse = await _rolesService.GetAllAsync();
+                if (!rolesResponse.IsSuccessful)
+                {
+                    return NotFound(rolesResponse.ErrorMessage);
+                }
+
                 await _projectsService.CreateAsync(project);
+                await _userRolesService.CreateAsync(new UserRole()
+                {
+                    ProjectId = project.Id,
+                    RoleId = rolesResponse.Data!.FirstOrDefault(r => r.Name == "Admin")!.Id,
+                    UserId = loggedUserId
+                });
 
                 return RedirectToAction("Index", "Projects");
             }
@@ -110,6 +155,17 @@ namespace DMnDBCS.UI.Controllers
         // GET: ProjectsController/Edit/5
         public async Task<ActionResult> Edit(int id)
         {
+            if (!int.TryParse(_jwtService.GetUserId(), out int loggedUserId))
+            {
+                return Unauthorized();
+            }
+
+            var userroleResponse = await _userRolesService.GetByIdUserAndProjectIdsAsync(loggedUserId, id);
+            if (!userroleResponse.IsSuccessful || userroleResponse.Data == null || userroleResponse.Data.RoleName != "Admin")
+            {
+                return Unauthorized();
+            }
+
             var response = await _projectsService.GetByIdAsync(id);
             if (!response.IsSuccessful || response.Data == null)
             {
@@ -161,6 +217,17 @@ namespace DMnDBCS.UI.Controllers
         // GET: ProjectsController/Delete/5
         public async Task<ActionResult> Delete(int id)
         {
+            if (!int.TryParse(_jwtService.GetUserId(), out int loggedUserId))
+            {
+                return Unauthorized();
+            }
+
+            var userroleResponse = await _userRolesService.GetByIdUserAndProjectIdsAsync(loggedUserId, id);
+            if (!userroleResponse.IsSuccessful || userroleResponse.Data == null || userroleResponse.Data.RoleName != "Admin")
+            {
+                return Unauthorized();
+            }
+
             var response = await _projectsService.GetByIdAsync(id);
             if (!response.IsSuccessful || response.Data == null)
             {

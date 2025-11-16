@@ -15,6 +15,10 @@ namespace DMnDBCS.UI.Controllers
         [HttpGet]
         public IActionResult Login()
         {
+            if (!string.IsNullOrEmpty(HttpContext.Session.GetString("JWTToken")))
+            {
+                return RedirectToAction("Index", "Home");
+            }
             return View();
         }
 
@@ -40,6 +44,11 @@ namespace DMnDBCS.UI.Controllers
         [HttpGet]
         public IActionResult Register()
         {
+            if (!string.IsNullOrEmpty(HttpContext.Session.GetString("JWTToken")))
+            {
+                return RedirectToAction("Index", "Home");
+            }
+
             return View();
         }
 
