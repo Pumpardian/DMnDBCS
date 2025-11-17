@@ -46,6 +46,19 @@ namespace DMnDBCS.API.Repositories.Projects
             }, id);
         }
 
+        public async Task<Project> GetLatestAsync()
+        {
+            const string procedureName = "get_latest_project";
+            return await _connection.QueryDBEntity(procedureName, reader => new Project
+            {
+                Id = reader.GetInt32(0),
+                Title = reader.GetString(1),
+                Description = reader.IsDBNull(2) ? null : reader.GetString(2),
+                StartDate = DateOnly.FromDateTime(reader.GetDateTime(3)),
+                EndDate = reader.IsDBNull(4) ? null : DateOnly.FromDateTime(reader.GetDateTime(4))
+            });
+        }
+
         public async Task<bool> UpdateAsync(Project project)
         {
             const string procedureName = "update_project";

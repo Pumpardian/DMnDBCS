@@ -11,12 +11,20 @@ public static class UserProfileEndpoints
     {
         var group = routes.MapGroup("/api/userprofiles").WithTags(nameof(UserProfile)).DisableAntiforgery().RequireAuthorization();
 
-        group.MapGet("/{id}", async (int id, [FromServices] IUserProfileRepository repository) =>
+        group.MapGet("/{identifier}", async (string identifier, [FromServices] IUserProfileRepository repository) =>
         {
             try
             {
-                var data = await repository.GetByIdAsync(id);
-                return TypedResults.Ok(data);
+                if (int.TryParse(identifier, out int id))
+                {
+                    var data = await repository.GetByIdAsync(id);
+                    return TypedResults.Ok(data);
+                }
+                else
+                {
+                    var data = await repository.GetByPhoneAsync(identifier);
+                    return TypedResults.Ok(data);
+                }
             }
             catch (Exception ex)
             {
@@ -26,8 +34,9 @@ public static class UserProfileEndpoints
                     statusCode: 500);
             }
         })
-        .WithName("GetUserProfileById")
-        .WithOpenApi();
+        .WithName("GetUserProfileByIdentifier")
+        .WithOpenApi()
+        .AllowAnonymous();
 
         group.MapPut("/{id}", async ([FromRoute] int id, [FromForm] string profile, [FromForm] IFormFile? file,
             [FromServices] IUserProfileRepository repository, [FromServices] IImageService imageService) =>
@@ -90,6 +99,7 @@ public static class UserProfileEndpoints
             }
         })
         .WithName("CreateUserProfile")
-        .WithOpenApi();
+        .WithOpenApi()
+        .AllowAnonymous();
     }
 }

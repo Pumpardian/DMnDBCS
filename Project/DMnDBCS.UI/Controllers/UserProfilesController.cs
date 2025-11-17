@@ -94,9 +94,10 @@ namespace DMnDBCS.UI.Controllers
         {
             try
             {
+                var currentEmail = _jwtService.GetUserEmail();
                 var apiBaseUrl = _configuration["UriData:ApiUri"];
                 var loginResponse = await _client.PostAsJsonAsync($"{apiBaseUrl}auth/login",
-                    new { userInfo.Email, userInfo.Password });
+                    new { Email = currentEmail, userInfo.Password });
 
                 if (!loginResponse.IsSuccessStatusCode)
                 {
@@ -115,6 +116,23 @@ namespace DMnDBCS.UI.Controllers
                 if (!regex.IsMatch(cleanPhone))
                 {
                     ModelState.AddModelError(nameof(userInfo.Phone), "Phone format is +375 XX XXXXXXX");
+                    return View(userInfo);
+                }
+
+                if (currentEmail != userInfo.Email)
+                {
+                    var emailUser = await _usersService.GetByEmailAsync(userInfo.Email);
+                    if (emailUser.IsSuccessful && emailUser.Data != null && emailUser.Data.Email == userInfo.Email)
+                    {
+                        ModelState.AddModelError(nameof(userInfo.Email), "User with that Email already exists");
+                        return View(userInfo);
+                    }
+                }
+
+                var phoneUser = await _userProfilesService.GetByPhoneAsync(cleanPhone);
+                if (phoneUser.IsSuccessful && phoneUser.Data != null && phoneUser.Data.Phone == cleanPhone && phoneUser.Data.UserId != userInfo.Id)
+                {
+                    ModelState.AddModelError(nameof(userInfo.Phone), "User with that Phone already exists");
                     return View(userInfo);
                 }
 

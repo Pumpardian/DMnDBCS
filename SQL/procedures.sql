@@ -77,6 +77,20 @@ BEGIN
 	WHERE id = _project_id;
 END; $$;
 
+----GET LATEST
+CREATE OR REPLACE PROCEDURE get_latest_project(
+    INOUT _ref refcursor DEFAULT 'projects_cursor'
+)
+LANGUAGE plpgsql AS $$
+BEGIN
+    OPEN _ref FOR
+    SELECT id AS project_id, title AS project_title, description AS project_description, 
+           start_date AS project_start_date, end_date AS project_end_date
+    FROM projects
+	ORDER BY id DESC
+    LIMIT 1;
+END; $$;
+
 --TASKS
 
 ----CREATE
@@ -725,11 +739,24 @@ CREATE OR REPLACE PROCEDURE get_userprofile(
 LANGUAGE plpgsql AS $$
 BEGIN
     OPEN _ref FOR
-    SELECT u.id AS user_id, u.name, u.email, p.phone, p.address, 
+    SELECT p.user_id, p.phone, p.address, 
            p.date_of_birth, p.profile_picture
-    FROM users u
-        LEFT JOIN userprofiles p ON u.id = p.user_id
-	WHERE u.id = _user_id;
+    FROM userprofiles p
+	WHERE p.user_id = _user_id;
+END; $$;
+
+----GET BY PHONE
+CREATE OR REPLACE PROCEDURE get_userprofile_by_phone(
+    _phone VARCHAR,
+    INOUT _ref refcursor DEFAULT 'userprofile_cursor'
+)
+LANGUAGE plpgsql AS $$
+BEGIN
+    OPEN _ref FOR
+    SELECT p.user_id, p.phone, p.address, 
+           p.date_of_birth, p.profile_picture
+    FROM userprofiles p
+    WHERE p.phone = _phone;
 END; $$;
 
 ----UPDATE

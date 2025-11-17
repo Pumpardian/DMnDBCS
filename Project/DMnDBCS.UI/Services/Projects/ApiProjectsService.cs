@@ -108,5 +108,29 @@ namespace DMnDBCS.UI.Services.Projects
             _logger.LogError(msg);
             throw new HttpRequestException(msg);
         }
+
+        public async Task<ResponseData<Project>> GetLatestAsync()
+        {
+            var urlString = _client.BaseAddress!.AbsoluteUri + $"/latest";
+
+            _tokenAccessor.SetAuthHeaderAsync(_client);
+
+            var response = await _client.GetAsync(urlString);
+            if (response.IsSuccessStatusCode)
+            {
+                try
+                {
+                    return ResponseData<Project>.Success((await response.Content.ReadFromJsonAsync<Project>(_jsonSerializerOptions))!);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError($"Error: {ex.Message}");
+                }
+            }
+
+            var msg = $"Error while receiving project data. Error: {response.StatusCode}";
+            _logger.LogError(msg);
+            return ResponseData<Project>.Error(msg);
+        }
     }
 }

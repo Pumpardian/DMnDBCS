@@ -68,6 +68,30 @@ namespace DMnDBCS.UI.Services.UserProfiles
             return ResponseData<UserProfile>.Error(msg);
         }
 
+        public async Task<ResponseData<UserProfile>> GetByPhoneAsync(string phone)
+        {
+            var urlString = _client.BaseAddress!.AbsoluteUri + $"/{phone}";
+
+            _tokenAccessor.SetAuthHeaderAsync(_client);
+
+            var response = await _client.GetAsync(urlString);
+            if (response.IsSuccessStatusCode)
+            {
+                try
+                {
+                    return ResponseData<UserProfile>.Success((await response.Content.ReadFromJsonAsync<UserProfile>(_jsonSerializerOptions))!);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError($"Error: {ex.Message}");
+                }
+            }
+
+            var msg = $"Error while receiving profile data. Error: {response.StatusCode}";
+            _logger.LogError(msg);
+            return ResponseData<UserProfile>.Error(msg);
+        }
+
         public async System.Threading.Tasks.Task UpdateAsync(UserProfile profile, IFormFile? formFile)
         {
             try

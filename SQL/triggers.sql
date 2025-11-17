@@ -1,19 +1,30 @@
 --AUTOMATION: PROJECT COMPLETION DATE ON TASKS CHANGE & TASK COMPLETION DATE ON STATUS CHANGE
-CREATE OR REPLACE FUNCTION completion_dates_automation()
+CREATE OR REPLACE FUNCTION task_completion_date_automation()
 RETURNS TRIGGER AS $$
 DECLARE
 	status_name VARCHAR(50);
 BEGIN
 	SELECT name INTO status_name FROM taskstatuses WHERE id = NEW.status;
 
-	IF status_name IN ('Cancelled', 'Completed') AND NEW.completion_date IS NULL
+	IF status_name IN ('Cancelled', 'Completed') AND OLD.completion_date IS NULL
 	THEN
 		NEW.completion_date = CURRENT_DATE;
-	ELSIF status_name NOT IN ('Cancelled', 'Completed') AND NEW.completion_date IS NOT NULL
+	ELSIF status_name NOT IN ('Cancelled', 'Completed') AND OLD.completion_date IS NOT NULL
 	THEN
 		NEW.completion_date = NULL;
 	END IF;
+	
+	RETURN NEW;
+END; $$ LANGUAGE plpgsql;
 
+CREATE OR REPLACE TRIGGER trigger_update_task_completion_date
+BEFORE INSERT OR UPDATE ON tasks
+FOR EACH ROW
+EXECUTE FUNCTION task_completion_date_automation();
+
+CREATE OR REPLACE FUNCTION project_completion_date_automation()
+RETURNS TRIGGER AS $$
+BEGIN
 	IF NOT EXISTS
 	(
 		SELECT 1
@@ -37,9 +48,9 @@ BEGIN
 END; $$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE TRIGGER trigger_update_project_completion_date
-BEFORE INSERT OR UPDATE ON tasks
+AFTER INSERT OR UPDATE ON tasks
 FOR EACH ROW
-EXECUTE FUNCTION completion_dates_automation();
+EXECUTE FUNCTION project_completion_date_automation();
 
 --NOTIFICATIONS
 

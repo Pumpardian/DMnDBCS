@@ -10,7 +10,7 @@
     <a asp-action="Create">Create New</a>
 </p>
 <div class="row">
-    @if (Model != null)
+    @if (Model != null && Model.Any())
     {
         @foreach (var item in Model)
         {

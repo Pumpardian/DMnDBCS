@@ -2,6 +2,7 @@
 using DMnDBCS.UI.Services.UserProfiles;
 using DMnDBCS.UI.Services.Users;
 using Microsoft.AspNetCore.Mvc;
+using System.Text.RegularExpressions;
 
 namespace DMnDBCS.UI.Controllers
 {
@@ -72,6 +73,29 @@ namespace DMnDBCS.UI.Controllers
                 return View(request);
             }
 
+            string cleanPhone = request.Phone.Replace(" ", "").Replace("-", "");
+            var regex = new Regex(@"^\+375(25|29|33|44|17)\d{7}$");
+
+            if (!regex.IsMatch(cleanPhone))
+            {
+                ModelState.AddModelError(nameof(request.Phone), "Phone format is +375 XX XXXXXXX");
+                return View(request);
+            }
+
+            var emailUser = await _usersService.GetByEmailAsync(request.Email);
+            if (emailUser.IsSuccessful && emailUser.Data != null && emailUser.Data.Email == request.Email)
+            {
+                ModelState.AddModelError(nameof(request.Email), "User with that Email already exists");
+                return View(request);
+            }
+
+            var phoneUser = await _userProfilesService.GetByPhoneAsync(cleanPhone);
+            if (phoneUser.IsSuccessful && phoneUser.Data != null && phoneUser.Data.Phone == cleanPhone)
+            {
+                ModelState.AddModelError(nameof(request.Phone), "User with that Phone already exists");
+                return View(request);
+            }
+
             var apiBaseUrl = _configuration["UriData:ApiUri"];
             var registerRequest = new LoginRequest(request.Name, request.Email, request.Password);
             var response = await _httpClient.PostAsJsonAsync($"{apiBaseUrl}auth/register", registerRequest);
@@ -87,7 +111,7 @@ namespace DMnDBCS.UI.Controllers
             var profile = new UserProfile()
             {
                 UserId = userResponse.Data!.Id,
-                Phone = request.Phone,
+                Phone = cleanPhone,
                 Address = request.Address,
                 DateOfBirth = request.DateOfBirth,
                 ProfilePicture = null

@@ -226,12 +226,13 @@ namespace DMnDBCS.UI.Controllers
 
                 await _taskService.UpdateAsync(task);
 
-                if (!(bool) TempData["FromProject"]!)
+                if (TempData["FromProject"] != null && (bool) TempData["FromProject"]!)
                 {
-                    return RedirectToAction("Index", "Tasks");
+                    return RedirectToAction("Details", "Projects", new { id = task.ProjectId });
+                    
                 }
 
-                return RedirectToAction("Details", "Projects", new { id = task.ProjectId });
+                return RedirectToAction("Index", "Tasks");
             }
             catch
             {
@@ -277,7 +278,13 @@ namespace DMnDBCS.UI.Controllers
             {
                 await _taskService.DeleteAsync(id);
 
-                return RedirectToAction("Details", "Projects", new { id = projectId });
+                if (TempData["FromProject"] != null && (bool)TempData["FromProject"]!)
+                {
+                    return RedirectToAction("Details", "Projects", new { id = projectId });
+
+                }
+
+                return RedirectToAction("Index", "Tasks");
             }
             catch
             {

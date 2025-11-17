@@ -2,7 +2,6 @@
 
 @{
     ViewData["Title"] = "Edit Task";
-    TempData["FromProject"] = ViewBag.FromProject;
 }
 
 <h1>Edit</h1>
@@ -11,7 +10,7 @@
 <hr />
 <div class="row">
     <div class="col-md-4">
-        <form asp-action="Edit" asp-route-projectId="@Model.ProjectId">
+        <form asp-action="Edit" asp-route-projectId="@Model.ProjectId" asp-route-creationDate="@Model.CreationDate" asp-route-completionDate="@Model.CompletionDate">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <div class="form-group">
                 <label asp-for="Title" class="control-label"></label>
@@ -45,7 +44,7 @@
                 </select>
                 <span asp-validation-for="Status" class="text-danger"></span>
             </div>
-            <div class="form-group">
+            @* <div class="form-group">
                 <label asp-for="CreationDate" class="control-label"></label>
                 <input asp-for="CreationDate" type="date" class="form-control" />
                 <span asp-validation-for="CreationDate" class="text-danger"></span>
@@ -54,7 +53,7 @@
                 <label asp-for="CompletionDate" class="control-label"></label>
                 <input asp-for="CompletionDate" type="date" class="form-control" />
                 <span asp-validation-for="CompletionDate" class="text-danger"></span>
-            </div>
+            </div> *@
 
             <div class="form-group">
                 <input type="submit" value="Edit" class="btn btn-primary" />
@@ -64,7 +63,7 @@
 </div>
 
 <div>
-    @if (ViewBag.FromProject)
+    @if (TempData["FromProject"] != null && (bool)TempData["FromProject"]!)
     {
         <a asp-action="Details" asp-controller="Projects" asp-route-id="@Model.ProjectId">Back to Project</a>
     }

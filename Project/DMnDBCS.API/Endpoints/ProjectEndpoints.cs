@@ -45,6 +45,24 @@ public static class ProjectEndpoints
         .WithName("GetProjectById")
         .WithOpenApi();
 
+        group.MapGet("/latest", async ([FromServices] IProjectRepository repository) =>
+        {
+            try
+            {
+                var data = await repository.GetLatestAsync();
+                return TypedResults.Ok(data);
+            }
+            catch (Exception ex)
+            {
+                return Results.Problem(
+                    detail: ex.ToString(),
+                    title: "Error occurred",
+                    statusCode: 500);
+            }
+        })
+        .WithName("GetLatest")
+        .WithOpenApi();
+
         group.MapPut("/{id}", async (int id, Project input, [FromServices] IProjectRepository repository) =>
         {
             try

@@ -93,7 +93,7 @@ namespace DMnDBCS.UI.Controllers
         // GET: ProjectsController/Create
         public ActionResult Create()
         {
-            return View();
+            return View(new Project() { StartDate = DateOnly.FromDateTime(DateTime.Today) });
         }
 
         // POST: ProjectsController/Create
@@ -137,9 +137,14 @@ namespace DMnDBCS.UI.Controllers
                 }
 
                 await _projectsService.CreateAsync(project);
+                var p = await _projectsService.GetLatestAsync();
+                if (!p.IsSuccessful || p.Data == null)
+                {
+                    return NotFound(p.ErrorMessage);
+                }
                 await _userRolesService.CreateAsync(new UserRole()
                 {
-                    ProjectId = project.Id,
+                    ProjectId = p.Data!.Id,
                     RoleId = rolesResponse.Data!.FirstOrDefault(r => r.Name == "Admin")!.Id,
                     UserId = loggedUserId
                 });

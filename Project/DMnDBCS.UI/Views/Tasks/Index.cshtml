@@ -7,7 +7,7 @@
 <h1>Tasks</h1>
 
 <div class="row">
-    @if (Model != null)
+    @if (Model != null && Model.Any())
     {
         @foreach (var item in Model)
         {

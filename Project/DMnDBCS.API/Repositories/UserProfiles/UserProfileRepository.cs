@@ -20,11 +20,24 @@ namespace DMnDBCS.API.Repositories.UserProfiles
             return await _connection.QueryDBEntity(procedureName, reader => new UserProfile
             {
                 UserId = reader.GetInt32(0),
-                Phone = reader.GetString(3),
-                Address = reader.GetString(4),
-                DateOfBirth = DateOnly.FromDateTime(reader.GetDateTime(5)),
-                ProfilePicture = reader.IsDBNull(6) ? null : reader.GetString(6)
+                Phone = reader.GetString(1),
+                Address = reader.GetString(2),
+                DateOfBirth = DateOnly.FromDateTime(reader.GetDateTime(3)),
+                ProfilePicture = reader.IsDBNull(4) ? null : reader.GetString(4)
             }, id);
+        }
+
+        public async Task<UserProfile> GetByPhoneAsync(string phone)
+        {
+            const string procedureName = "get_userprofile_by_phone";
+            return await _connection.QueryDBEntity(procedureName, reader => new UserProfile
+            {
+                UserId = reader.GetInt32(0),
+                Phone = reader.GetString(1),
+                Address = reader.GetString(2),
+                DateOfBirth = DateOnly.FromDateTime(reader.GetDateTime(3)),
+                ProfilePicture = reader.IsDBNull(4) ? null : reader.GetString(4)
+            }, phone);
         }
 
         public async Task<bool> UpdateAsync(UserProfile userProfile)

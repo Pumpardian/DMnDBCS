@@ -63,7 +63,7 @@
     
     <form asp-action="Delete" asp-route-projectId="@Model.ProjectId">
         <input type="submit" value="Delete" class="btn btn-danger" /> |
-        @if (ViewBag.FromProject)
+        @if (TempData["FromProject"] != null && (bool)TempData["FromProject"]!)
         {
             <a asp-action="Details" asp-controller="Projects" asp-route-id="@Model.ProjectId">Back to Project</a>
         }
