@@ -19,6 +19,10 @@
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-start mb-2">
                             <small class="text-muted">ID: @Html.DisplayFor(modelItem => item.Id)</small>
+                            @if (item.UserRole != null)
+                            {
+                                <strong>Role: @item.UserRole</strong>
+                            }
                         </div>
                         <h5 class="card-title">@Html.DisplayFor(modelItem => item.Title)</h5>
                         <p class="card-text">@Html.DisplayFor(modelItem => item.Description)</p>

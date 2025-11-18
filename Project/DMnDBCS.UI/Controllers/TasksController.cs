@@ -192,6 +192,8 @@ namespace DMnDBCS.UI.Controllers
             }
             ViewBag.Statuses = statusesResponse.Data;
 
+            response.Data.CanDelete = userroleResponse.Data.RoleName == "Admin" || userroleResponse.Data.RoleName == "Project Manager";
+
             return View(response.Data);
         }
 
